@@ -1,7 +1,7 @@
 name: TCG monitor (http stores)
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "7 * * * *"   # hourly: private repos get 2000 free Actions min/month
   workflow_dispatch:
 concurrency:
   group: tcg-state
