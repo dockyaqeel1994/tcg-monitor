@@ -5,7 +5,11 @@ is **new**, **back in stock**, or has a **price drop**.
 
 - **Sealed** (boxes, cases, packs, decks) always alerts.
 - **Singles** only alert at or above `SINGLES_MIN` (default R500), so cheap commons don't flood you.
-- Kai of Cards alerts include a pre-filled order email + WhatsApp link (quantity defaults to 2).
+- **Kai of Cards (priority):** the preorder, sealed and new pages are checked every 30 minutes by
+  their own workflow. When a One Piece **booster box** is available, you get an "ORDER NOW" email
+  with a ready-to-send order to Kai (email + WhatsApp, quantity `ORDER_QTY`, default 2). One alert
+  per set, ever (tracked in `state/_kai_orders.json`; delete a set's entry to be alerted again).
+  Nothing is sent to Kai automatically - you tap send.
 - A store that fails 3 runs in a row triggers a "check the parser" alert. A failing store never
   overwrites its saved state, so one bad run can't cause a flood of fake "new" alerts.
 - The first run of each store only saves a baseline (no alerts).
@@ -15,7 +19,10 @@ is **new**, **back in stock**, or has a **price drop**.
 2. Settings -> Secrets and variables -> Actions -> add secrets: `SMTP_HOST` (smtp.gmail.com),
    `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASS` (Gmail app password), `MAIL_TO`,
    `ORDER_NAME`, `ORDER_PHONE`, `ORDER_ADDRESS`. Optional variable: `SINGLES_MIN`.
-3. Actions tab -> run both workflows once (baseline), then again (should say "no alerts").
+3. Actions tab -> run each workflow once (baseline), then again (should say "no alerts").
+
+Schedules (private repo, fits 2000 free Actions min/month): Kai every 30 min, other stores every
+6 h, browser stores daily. A public repo has unlimited minutes, so these can be much faster.
 
 ## Run locally
 ```
@@ -32,6 +39,8 @@ run it with `--dry-run` and compare against the site; the HTML parsers are in `m
 (`parse_woo`, `parse_presta`, `parse_generic`).
 
 ## Known weak spots
+- AI Fest, Tanuki Trader and Marvellous Hobbies block GitHub's servers (Cloudflare/403) and are
+  commented out in `sites.py`.
 - HTML parsers (WooCommerce, PrestaShop, CG Haven, Untapped Potential, Mirage) were tested
   against sample markup only, not live pages. Check each with `--dry-run` first.
 - Mirage Gaming has no One Piece category URL in the config, so it scans `/shop` and filters by name.

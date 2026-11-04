@@ -249,8 +249,8 @@ def shopify(site, f):
             if not keep(site, hay):
                 continue
             vs = p.get("variants", [])
-            prices = [float(v["price"]) for v in vs if v.get("price")]
-            out[p["handle"]] = {"title": p["title"], "price": min(prices) if prices else None,
+            prices = [float(v["price"]) * site.get("vat", 1) for v in vs if v.get("price")]
+            out[p["handle"]] = {"title": p["title"], "price": round(min(prices), 2) if prices else None,
                                 "available": any(v.get("available") for v in vs),
                                 "url": f"{base}/products/{p['handle']}"}
         if len(prods) < 250:
@@ -320,6 +320,24 @@ def diff(old, new, singles_min=SINGLES_MIN):
 CODE_RE = re.compile(r"\b(OP|EB|PRB|ST)[- ]?(\d{2})\b", re.I)
 
 
+BOX_RE = re.compile(r"booster\s*box", re.I)
+
+
+def set_code(n):
+    m = CODE_RE.search(n["title"])
+    return (m.group(1) + m.group(2)).upper() if m else n["url"]
+
+
+def kai_orders(items, done):
+    """Available One Piece booster boxes whose set has not had an order alert yet -> {set: [items]}."""
+    out = {}
+    for n in items.values():
+        if (n["available"] and BOX_RE.search(n["title"]) and OP_RE.search(n["title"])
+                and set_code(n) not in done):
+            out.setdefault(set_code(n), []).append(n)
+    return out
+
+
 def order_draft(alerts):
     orderable = {n["url"]: n for t, n in alerts if n["available"] and not t.startswith("PRICE")}.values()
     qty = env("ORDER_QTY", "2")
@@ -348,8 +366,25 @@ def order_draft(alerts):
 
 
 # ---------- notification ----------
-def notify(by_site, failing):
+def notify(by_site, failing, orders=None):
+    """Print and email the alerts. Returns True if an email was sent."""
     lines, rows = [], []
+    for code, items in (orders or {}).items():
+        subject, body = order_draft([("NEW", n) for n in items])
+        mailto = f"mailto:{KAI_EMAIL}?subject={quote(subject)}&body={quote(body)}"
+        wa = f"https://wa.me/{KAI_WHATSAPP}?text={quote(body)}"
+        names = ", ".join(f"{n['title']} (EUR {n['price']:g})" for n in items)
+        lines += [f"*** KAI: {code} BOOSTER BOX AVAILABLE - {names}",
+                  *[f"  {n['url']}" for n in items],
+                  f"  Email order to Kai: {mailto}", f"  WhatsApp Kai: {wa}"]
+        rows.append(
+            f"<div style='border:2px solid #1a7f37;padding:12px;margin:0 0 16px'>"
+            f"<h2 style='margin:0 0 8px'>Kai: {htmllib.escape(code)} booster box available</h2>"
+            + "".join(f"<p><a href='{n['url']}'>{htmllib.escape(n['title'])}</a> - EUR {n['price']:g}</p>"
+                      for n in items)
+            + f"<p style='font-size:18px'><a href='{mailto}'><b>Email order to Kai</b></a> &nbsp;|&nbsp; "
+              f"<a href='{wa}'><b>WhatsApp Kai</b></a></p>"
+              f"<pre style='white-space:pre-wrap'>{htmllib.escape(body)}</pre></div>")
     for site, alerts in by_site.values():
         cur = site.get("cur", "R")
         lines.append(f"== {site['name']} ==")
@@ -360,23 +395,21 @@ def notify(by_site, failing):
             rows.append(f"<li><b>{htmllib.escape(tag)}</b>: <a href='{n['url']}'>"
                         f"{htmllib.escape(n['title'])}</a> - {price}</li>")
         rows.append("</ul>")
-        if site.get("order") == "kai":
-            subject, body = order_draft(alerts)
-            mailto = f"mailto:{KAI_EMAIL}?subject={quote(subject)}&body={quote(body)}"
-            wa = f"https://wa.me/{KAI_WHATSAPP}?text={quote(body)}"
-            lines += [f"Order email to Kai: {mailto}", f"WhatsApp Kai: {wa}"]
-            rows.append(f"<p><a href='{mailto}'>Email order to Kai</a> | <a href='{wa}'>WhatsApp Kai</a></p>")
     for name in failing:
         lines.append(f"!! {name} has failed 3 runs in a row - check the parser")
         rows.append(f"<p><b>!! {htmllib.escape(name)}</b> has failed 3 runs in a row - check the parser</p>")
     text, html = "\n".join(lines), "".join(rows)
     print(text)
     if not os.getenv("SMTP_HOST"):
-        return
+        return False
     n_alerts = sum(len(a) for _, a in by_site.values())
     msg = EmailMessage()
-    msg["Subject"] = (f"TCG monitor: {n_alerts} update(s) - " + ", ".join(by_site)
-                      if by_site else "TCG monitor: a store is failing")
+    if orders:
+        msg["Subject"] = f"ORDER NOW: Kai {' / '.join(orders)} booster box available - tap to order"
+    elif by_site:
+        msg["Subject"] = f"TCG monitor: {n_alerts} update(s) - " + ", ".join(by_site)
+    else:
+        msg["Subject"] = "TCG monitor: a store is failing"
     msg["From"], msg["To"] = os.environ["SMTP_USER"], os.environ["MAIL_TO"]
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
@@ -384,27 +417,35 @@ def notify(by_site, failing):
         s.starttls()
         s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASS"])
         s.send_message(msg)
+    return True
 
 
 # ---------- main ----------
+def group_of(site):
+    """kai: Kai order pages (own fast workflow), js: needs a browser, http: everything else."""
+    return "kai" if site.get("order") == "kai" else "js" if site.get("js") else "http"
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--group", choices=["http", "js", "all"], default="all")
+    ap.add_argument("--group", choices=["kai", "http", "js", "all"], default="all")
     ap.add_argument("--site", help="run a single store by name")
     ap.add_argument("--dry-run", action="store_true", help="no email, don't touch state")
     ap.add_argument("--list", action="store_true")
     a = ap.parse_args()
     if a.list:
         for s in SITES:
-            print(f"{s['name']:28} {s['platform']:12} {'js' if s.get('js') else 'http'}")
+            print(f"{s['name']:28} {s['platform']:12} {group_of(s)}")
         return
     sites = [s for s in SITES if (not a.site or s["name"].lower() == a.site.lower())
-             and (a.group == "all" or bool(s.get("js")) == (a.group == "js"))]
+             and a.group in ("all", group_of(s))]
     STATE_DIR.mkdir(exist_ok=True)
     # one health file per group so the two workflows never edit the same file (git conflicts)
     health_path = STATE_DIR / f"_health_{a.group}.json"
     health = json.loads(health_path.read_text()) if health_path.exists() else {}
-    by_site, failing, f = {}, [], Fetcher()
+    orders_path = STATE_DIR / "_kai_orders.json"
+    done = json.loads(orders_path.read_text()) if orders_path.exists() else {}
+    by_site, failing, orders, f = {}, [], {}, Fetcher()
     try:
         for site in sites:
             path = STATE_DIR / f"{slug(site['name'])}.json"
@@ -417,6 +458,10 @@ def main():
                     failing.append(site["name"])
                 continue
             health[site["name"]] = 0
+            if site.get("order") == "kai":
+                for code, items in kai_orders(new, done).items():
+                    orders.setdefault(code, [])
+                    orders[code] += [n for n in items if n["url"] not in {x["url"] for x in orders[code]}]
             if path.exists():
                 alerts = diff(json.loads(path.read_text()), new, SINGLES_MIN / site.get("fx", 1))
                 print(f"[{site['name']}] {len(new)} products, {len(alerts)} alert(s)")
@@ -431,10 +476,15 @@ def main():
         f.close()
     if not a.dry_run:
         health_path.write_text(json.dumps(health, indent=1))
-    if by_site or failing:
+    if by_site or failing or orders:
         if a.dry_run:
             os.environ.pop("SMTP_HOST", None)
-        notify(by_site, failing)
+        # remember a set only once its alert email actually went out, so it is never lost
+        if notify(by_site, failing, orders) and orders and not a.dry_run:
+            stamp = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
+            for code, items in orders.items():
+                done[code] = {"alerted": stamp, "titles": [n["title"] for n in items]}
+            orders_path.write_text(json.dumps(done, indent=1))
 
 
 if __name__ == "__main__":

@@ -99,6 +99,25 @@ def test_kai_draft():
     assert subj.endswith("Booster Box") and body.startswith("Preorder EB05") and "2x" in body
 
 
+def test_kai_orders():
+    eb05 = "One Piece Card Game - EXTRA BOOSTER -ONE PIECE HEROINES EDITION Vol.2- [EB-05] - Booster Box -Preorder-"
+    items = {"eb05": item(eb05, 199.95),
+             "op17": item("One Piece Card Game - [OP-17] - Booster Box -Preorder-", 99.95, False),  # sold out
+             "fb11": item("Dragon Ball Super Fusion World - Brightness Of Hope- [FB11] Booster Box -Preorder-", 150),
+             "deck": item("One Piece Card Game - Starter Deck [ST-29] -Preorder-", 14.95),          # not a box
+             "lm09": item("[LM-09] -Preorder-", 29.95)}
+    assert list(m.kai_orders(items, {})) == ["EB05"]
+    assert m.kai_orders(items, {"EB05": {}}) == {}   # one alert per set, ever
+    subj, body = m.order_draft([("NEW", items["eb05"])])
+    assert "EB-05" in subj and body.startswith("Preorder EB05") and "I'd like to order" in body
+
+
+def test_notify_order_section():
+    os.environ.pop("SMTP_HOST", None)
+    n = item("One Piece [EB-05] Booster Box", 199.95)
+    assert m.notify({}, [], {"EB05": [n]}) is False   # no SMTP configured -> printed only, not "sent"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
