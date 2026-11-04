@@ -28,6 +28,7 @@ jobs:
           ORDER_NAME: ${{ secrets.ORDER_NAME }}
           ORDER_PHONE: ${{ secrets.ORDER_PHONE }}
           ORDER_ADDRESS: ${{ secrets.ORDER_ADDRESS }}
+          ORDER_ITEM: ${{ vars.ORDER_ITEM }}
           SINGLES_MIN: ${{ vars.SINGLES_MIN }}
       - run: |
           git config user.name "monitor-bot"

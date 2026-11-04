@@ -14,7 +14,7 @@ Usage:
 
 Env: SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS MAIL_TO
      SINGLES_MIN (default 500)  DROP_PCT (default 10)
-     ORDER_QTY (default 2) ORDER_NAME ORDER_PHONE ORDER_ADDRESS   (Kai order draft)
+     ORDER_ITEM (default "1 x {set} Case (12 boxes)") ORDER_NAME ORDER_PHONE ORDER_ADDRESS (Kai order)
 """
 import argparse, html as htmllib, json, os, re, smtplib, sys, time
 from email.message import EmailMessage
@@ -338,29 +338,16 @@ def kai_orders(items, done):
     return out
 
 
-def order_draft(alerts):
-    orderable = {n["url"]: n for t, n in alerts if n["available"] and not t.startswith("PRICE")}.values()
-    qty = env("ORDER_QTY", "2")
+def order_draft(code, items):
+    """Order email for one set, in the format used for the EB05 order with Kai."""
+    label = items[0]["title"] if code.startswith("http") else code  # no set code -> use the title
+    what = env("ORDER_ITEM", "1 x {set} Case (12 boxes)").format(set=label)
     name = env("ORDER_NAME", "[YOUR NAME]")
-    phone = env("ORDER_PHONE", "[YOUR WHATSAPP]")
     addr = env("ORDER_ADDRESS", "[YOUR ADDRESS, SOUTH AFRICA]")
-    pool = list(orderable) or [n for _, n in alerts]
-    codes = []
-    for n in pool:
-        m = CODE_RE.search(n["title"])
-        if m and (m.group(1) + m.group(2)).upper() not in codes:
-            codes.append((m.group(1) + m.group(2)).upper())
-    tag = "Preorder " + " / ".join(codes) if codes else "Preorder"
-    subject = pool[0]["title"] if len(pool) == 1 else f"{tag} - {len(pool)} One Piece items"
-    if orderable:
-        lines = "\n".join(f"- {qty}x {n['title']} {n['url']}" for n in orderable)
-        ask = "Please send me a shipping quote and payment details."
-        intro = "I'd like to order:"
-    else:
-        lines = "\n".join(f"- {n['title']} {n['url']}" for n in pool)
-        ask = "They show as sold out - can I reserve or preorder? Please include a shipping quote."
-        intro = "I saw these on your site:"
-    body = (f"{tag}\n\nHi Kai,\n\n{intro}\n{lines}\n\n{ask}\n\n"
+    phone = env("ORDER_PHONE", "[YOUR WHATSAPP]")
+    subject = f"Preorder {what.split(' x ', 1)[-1]}"
+    body = (f"Hi Kai,\n\nI'd like to preorder {what}.\n"
+            f"Please send me a shipping quote and payment details.\n\n"
             f"{name}\n{addr}\nWhatsApp: {phone}\n\nThank you!")
     return subject, body
 
@@ -370,7 +357,7 @@ def notify(by_site, failing, orders=None):
     """Print and email the alerts. Returns True if an email was sent."""
     lines, rows = [], []
     for code, items in (orders or {}).items():
-        subject, body = order_draft([("NEW", n) for n in items])
+        subject, body = order_draft(code, items)
         mailto = f"mailto:{KAI_EMAIL}?subject={quote(subject)}&body={quote(body)}"
         wa = f"https://wa.me/{KAI_WHATSAPP}?text={quote(body)}"
         names = ", ".join(f"{n['title']} (EUR {n['price']:g})" for n in items)

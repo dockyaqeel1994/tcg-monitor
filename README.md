@@ -7,7 +7,8 @@ is **new**, **back in stock**, or has a **price drop**.
 - **Singles** only alert at or above `SINGLES_MIN` (default R500), so cheap commons don't flood you.
 - **Kai of Cards (priority):** the preorder, sealed and new pages are checked every 30 minutes by
   their own workflow. When a One Piece **booster box** is available, you get an "ORDER NOW" email
-  with a ready-to-send order to Kai (email + WhatsApp, quantity `ORDER_QTY`, default 2). One alert
+  with a ready-to-send order to Kai (email + WhatsApp), e.g. "I'd like to preorder 1 x EB05 Case
+  (12 boxes)". Change the wording with the `ORDER_ITEM` variable. One alert
   per set, ever (tracked in `state/_kai_orders.json`; delete a set's entry to be alerted again).
   Nothing is sent to Kai automatically - you tap send.
 - A store that fails 3 runs in a row triggers a "check the parser" alert. A failing store never

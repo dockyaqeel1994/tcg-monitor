@@ -23,9 +23,9 @@ GENERIC = """<div class="grid"><div class="card"><a href="/product/one-piece-rou
 
 
 def test_empty_env_uses_default():
-    os.environ["ORDER_QTY"] = ""  # how GitHub passes an unset secret/variable
-    assert m.env("ORDER_QTY", "2") == "2"
-    del os.environ["ORDER_QTY"]
+    os.environ["ORDER_ITEM"] = ""  # how GitHub passes an unset secret/variable
+    assert m.env("ORDER_ITEM", "x") == "x"
+    del os.environ["ORDER_ITEM"]
 
 
 def test_to_float():
@@ -93,10 +93,15 @@ def test_diff_eur_threshold():
 
 
 def test_kai_draft():
-    os.environ["ORDER_QTY"] = "2"
-    subj, body = m.order_draft([("NEW", {"title": "One Piece Card Game - [EB05] - Booster Box", "price": 99,
-                                         "available": True, "url": "https://kaiofcards.com/products/eb05"})])
-    assert subj.endswith("Booster Box") and body.startswith("Preorder EB05") and "2x" in body
+    os.environ.update(ORDER_NAME="A Name", ORDER_ADDRESS="1 Street, Johannesburg", ORDER_PHONE="+27 00")
+    n = {"title": "One Piece Card Game - [EB-05] - Booster Box", "price": 199.95, "available": True, "url": "u"}
+    subj, body = m.order_draft("EB05", [n])
+    assert subj == "Preorder EB05 Case (12 boxes)"
+    assert body == ("Hi Kai,\n\nI'd like to preorder 1 x EB05 Case (12 boxes).\n"
+                    "Please send me a shipping quote and payment details.\n\n"
+                    "A Name\n1 Street, Johannesburg\nWhatsApp: +27 00\n\nThank you!")
+    for k in ("ORDER_NAME", "ORDER_ADDRESS", "ORDER_PHONE"):
+        del os.environ[k]
 
 
 def test_kai_orders():
@@ -108,8 +113,6 @@ def test_kai_orders():
              "lm09": item("[LM-09] -Preorder-", 29.95)}
     assert list(m.kai_orders(items, {})) == ["EB05"]
     assert m.kai_orders(items, {"EB05": {}}) == {}   # one alert per set, ever
-    subj, body = m.order_draft([("NEW", items["eb05"])])
-    assert "EB-05" in subj and body.startswith("Preorder EB05") and "I'd like to order" in body
 
 
 def test_notify_order_section():
