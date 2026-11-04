@@ -409,7 +409,7 @@ def send_discord(by_site, failing, orders):
         wa = f"https://wa.me/{KAI_WHATSAPP}?text={quote(body)}"
         msgs.append(f"🟢 **ORDER NOW: Kai {code} booster box available**\n"
                     + "".join(f"[{n['title']}](<{n['url']}>) · EUR {n['price']:g}\n" for n in items)
-                    + f"\n👉 **[WhatsApp Kai]({wa})**\n"
+                    + f"\n👉 **[WhatsApp Kai](<{wa}>)**\n"
                       f"Email to {KAI_EMAIL}, subject `{subject}`:\n```\n{body}\n```")
     for site, alerts in by_site.values():
         cur = site.get("cur", "R")
