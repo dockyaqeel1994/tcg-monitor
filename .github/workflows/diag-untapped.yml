@@ -1,0 +1,32 @@
+name: diag untapped (temporary)
+on: workflow_dispatch
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q playwright && playwright install --with-deps chromium > /dev/null
+      - shell: python
+        run: |
+          import re
+          from playwright.sync_api import sync_playwright
+          base = "https://www.untappedpotentialtcg.co.za"
+          with sync_playwright() as p:
+              b = p.chromium.launch()
+              pg = b.new_page(locale="en-ZA")
+              for url in [base + "/category/onepiece", base + "/"]:
+                  pg.goto(url, wait_until="domcontentloaded", timeout=60000)
+                  pg.wait_for_timeout(6000)
+                  n0 = pg.locator("a[href*='/product']").count()
+                  for _ in range(8):
+                      pg.mouse.wheel(0, 20000); pg.wait_for_timeout(1500)
+                  n1 = pg.locator("a[href*='/product']").count()
+                  hrefs = sorted({a for a in pg.eval_on_selector_all("a[href]", "e => e.map(x => x.href)")})
+                  print(f"=== {url}  product links before/after scrolling: {n0}/{n1}")
+                  print("categories:", [h for h in hrefs if "/category" in h or "/collection" in h or "/shop" in h])
+                  print("buttons:", [t.strip() for t in pg.locator("button, a").all_inner_texts() if re.search(r"more|next|page|load", t, re.I)][:20])
+                  txt = pg.inner_text("body")
+                  print("sealed-looking lines:", [l for l in txt.splitlines() if re.search(r"booster|box|premium|double pack|collection", l, re.I)][:40])
+              b.close()
