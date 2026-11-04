@@ -249,8 +249,8 @@ def shopify(site, f):
             if not keep(site, hay):
                 continue
             vs = p.get("variants", [])
-            prices = [float(v["price"]) * site.get("vat", 1) for v in vs if v.get("price")]
-            out[p["handle"]] = {"title": p["title"], "price": round(min(prices), 2) if prices else None,
+            prices = [float(v["price"]) for v in vs if v.get("price")]
+            out[p["handle"]] = {"title": p["title"], "price": min(prices) if prices else None,
                                 "available": any(v.get("available") for v in vs),
                                 "url": f"{base}/products/{p['handle']}"}
         if len(prods) < 250:

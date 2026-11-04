@@ -13,7 +13,8 @@ Cloudflare/403, even through a real browser. They can't be monitored from GitHub
 filter: True -> the URL is not One Piece only, keep just One Piece products
 feed: explicit Shopify JSON feed (when the given URL is a page/search, not a collection)
 cur: currency symbol used in alerts (default "R")
-vat: multiply feed prices by this (Kai's Shopify feed is ex 21% Dutch VAT; site shows incl.)
+     Kai prices are the Shopify feed price, which is ex 21% Dutch VAT: that is what an export
+     order to South Africa pays (site shows incl. VAT, e.g. 199.95 vs 165.25 charged).
 fx: ZAR per unit of the store's currency, so the R singles threshold applies in EUR too
 order: "kai" -> checked by the fast Kai workflow; when a One Piece booster box is available, the
               alert includes a ready-to-send order email/WhatsApp to Kai (once per set)
@@ -43,13 +44,13 @@ SITES = [
     #  "url": "https://marvelloushobbies.com/universe/sports-cards/one-piece/"},
     {"name": "Card Cache (OP17)", "platform": "shopify",
      "url": "https://cardcache.co.za/collections/op-17"},
-    {"name": "Kai of Cards - singles", "platform": "shopify", "cur": "EUR ", "fx": 20, "vat": 1.21,
+    {"name": "Kai of Cards - singles", "platform": "shopify", "cur": "EUR ", "fx": 20,
      "url": "https://kaiofcards.com/collections/one-piece-singles"},
-    {"name": "Kai of Cards - sealed", "platform": "shopify", "cur": "EUR ", "fx": 20, "vat": 1.21, "order": "kai",
+    {"name": "Kai of Cards - sealed", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai",
      "url": "https://kaiofcards.com/collections/one-piece-sealed"},
-    {"name": "Kai of Cards - preorder", "platform": "shopify", "cur": "EUR ", "fx": 20, "vat": 1.21, "order": "kai", "filter": True,
+    {"name": "Kai of Cards - preorder", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai", "filter": True,
      "url": "https://kaiofcards.com/collections/preorder"},
-    {"name": "Kai of Cards - new", "platform": "shopify", "cur": "EUR ", "fx": 20, "vat": 1.21, "order": "kai", "filter": True,
+    {"name": "Kai of Cards - new", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai", "filter": True,
      "url": "https://kaiofcards.com/collections/new-online"},
     {"name": "Level Up Store", "platform": "shopify",
      "url": "https://levelupstore.co.za/collections/one-piece-in-stock"},
