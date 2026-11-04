@@ -123,9 +123,14 @@ class Fetcher:
             self.ctx = self.browser.new_context(user_agent=UA, locale="en-ZA")
         page = self.ctx.new_page()
         try:
-            page.goto(url, wait_until="networkidle", timeout=45000)
-            page.wait_for_timeout(1500)
-            return page.content()
+            # "networkidle" never fires on pages with chat/analytics scripts; wait for the DOM, then
+            # give client-side rendering a few seconds
+            page.goto(url, wait_until="domcontentloaded", timeout=45000)
+            page.wait_for_timeout(6000)
+            html = page.content()
+            if re.search(r"Just a moment|cf-challenge|challenge-platform|Attention Required", html[:20000]):
+                raise RuntimeError("blocked by a Cloudflare bot check")
+            return html
         finally:
             page.close()
 
