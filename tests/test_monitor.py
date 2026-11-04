@@ -93,7 +93,9 @@ def test_diff_eur_threshold():
 
 
 def test_sealed_only():
-    alerts = [("NEW", item("One Piece Starter Deck 36: YELLOW Kid", 399.99)),
+    alerts = [("NEW", item("One Piece Starter Deck 36: YELLOW Kid", 399.99)),                    # not wanted
+              ("NEW", item("One Piece Card Game: Learn Together Deck Set (LT-01)", 1150)),         # not wanted
+              ("NEW", item("One Piece Card Game: Double Pack Set 13 (DP-13)", 450)),
               ("NEW", item("[Pre-Order] One Piece OP-18 The Dominance Of God Booster Box", 4079.99)),
               ("NEW (sold out)", item("One Piece EB-05 Booster Box", 4079.99, False)),     # can't buy
               ("NEW", item("Luffy SP OP05-001", 900)),                                     # single
@@ -104,7 +106,7 @@ def test_sealed_only():
               ("NEW", item("Bell-mere — Extra Booster: One Piece Heroines Edition Vol. 2 — Common", 8)),
               ("NEW", item("Kayou One Piece Pen – Series 2 (Blind Box)", 95))]
     tags = [t for t, _ in m.sealed_only(alerts)]
-    assert tags == ["BOOSTER BOX PREORDER NEW", "NEW", "BACK IN STOCK"]
+    assert tags == ["BOOSTER BOX PREORDER NEW", "NEW", "BACK IN STOCK"]  # box, double pack, premium
 
 
 def test_kai_draft():

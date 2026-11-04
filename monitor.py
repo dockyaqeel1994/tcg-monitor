@@ -298,6 +298,7 @@ def snapshot(site, f):
 # ---------- diff / alerts ----------
 ACCESSORY_RE = re.compile(r"sleeve|playmat|play mat|counter|deck ?box|binder|holder|toploader|top loader|"
                           r"protector|storage|dice|card case|portfolio|figure|banpresto|plush|keychain", re.I)
+SKIP_RE = re.compile(r"starter deck|deck set|learn together", re.I)  # sealed, but not wanted
 PREORDER_RE = re.compile(r"pre-?order|presale|pre-sale", re.I)
 
 
@@ -347,7 +348,7 @@ def sealed_only(alerts):
     """Keep sealed products that can be bought now; label preorders and booster boxes."""
     out = []
     for t, n in alerts:
-        if not (n["available"] and is_sealed(n["title"])):
+        if not (n["available"] and is_sealed(n["title"])) or SKIP_RE.search(n["title"]):
             continue
         if PREORDER_RE.search(n["title"]):
             t = "PREORDER " + t
