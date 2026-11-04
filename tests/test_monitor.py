@@ -121,6 +121,28 @@ def test_notify_order_section():
     assert m.notify({}, [], {"EB05": [n]}) is False   # no SMTP configured -> printed only, not "sent"
 
 
+def test_discord_messages():
+    sent = []
+
+    class R:
+        status_code = 200
+        def raise_for_status(self): pass
+
+    real_post, real_sleep = m.requests.post, m.time.sleep
+    m.requests.post = lambda url, json, timeout: sent.append(json["content"]) or R()
+    m.time.sleep = lambda s: None
+    os.environ["DISCORD_WEBHOOK"] = "https://discord.example/hook"
+    try:
+        n = item("One Piece [EB-05] Booster Box", 165.25)
+        site = {"name": "Kai of Cards - preorder", "cur": "EUR "}
+        assert m.notify({"k": (site, [("NEW", n)])}, [], {"EB05": [n]}) is True
+    finally:
+        m.requests.post, m.time.sleep = real_post, real_sleep
+        del os.environ["DISCORD_WEBHOOK"]
+    assert "ORDER NOW: Kai EB05" in sent[0] and "wa.me/" in sent[0] and "1 x EB05 Case" in sent[0]
+    assert all(len(c) <= 2000 for c in sent)
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

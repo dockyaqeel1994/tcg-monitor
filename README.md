@@ -20,6 +20,10 @@ is **new**, **back in stock**, or has a **price drop**.
 2. Settings -> Secrets and variables -> Actions -> add secrets: `SMTP_HOST` (smtp.gmail.com),
    `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASS` (Gmail app password), `MAIL_TO`,
    `ORDER_NAME`, `ORDER_PHONE`, `ORDER_ADDRESS`. Optional variable: `SINGLES_MIN`.
+   **Discord instead of / as well as email:** in a Discord channel, Edit Channel -> Integrations ->
+   Webhooks -> New Webhook -> Copy Webhook URL, and save it as the secret `DISCORD_WEBHOOK`.
+   To check alerts arrive: Actions -> "TCG monitor (Kai preorders)" -> Run workflow -> tick
+   "Only send a sample alert".
 3. Actions tab -> run each workflow once (baseline), then again (should say "no alerts").
 
 Schedules (private repo, fits 2000 free Actions min/month): Kai every 30 min, other stores every

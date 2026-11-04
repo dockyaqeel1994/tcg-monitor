@@ -26,6 +26,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           SINGLES_MIN: ${{ vars.SINGLES_MIN }}
       - run: |
           git config user.name "monitor-bot"

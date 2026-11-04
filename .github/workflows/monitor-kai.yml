@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: "3,33 * * * *"   # every 30 min: ~1 billed min/run = ~1440 of the 2000 free min/month
   workflow_dispatch:
+    inputs:
+      test_alert:
+        description: "Only send a sample alert (to check Discord/email work)"
+        type: boolean
+        default: false
 concurrency:
   group: tcg-kai   # separate from the other stores so it never waits behind them
   cancel-in-progress: false
@@ -18,13 +23,14 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python monitor.py --group kai
+      - run: python monitor.py ${{ inputs.test_alert && '--test-alert' || '--group kai' }}
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           ORDER_NAME: ${{ secrets.ORDER_NAME }}
           ORDER_PHONE: ${{ secrets.ORDER_PHONE }}
           ORDER_ADDRESS: ${{ secrets.ORDER_ADDRESS }}

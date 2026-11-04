@@ -12,7 +12,8 @@ Usage:
   python monitor.py --site "Geek Home" --dry-run   # test one store, no email, no state change
   python monitor.py --list
 
-Env: SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS MAIL_TO
+Env: SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS MAIL_TO   (email alerts)
+     DISCORD_WEBHOOK                                (Discord alerts)
      SINGLES_MIN (default 500)  DROP_PCT (default 10)
      ORDER_ITEM (default "1 x {set} Case (12 boxes)") ORDER_NAME ORDER_PHONE ORDER_ADDRESS (Kai order)
 """
@@ -354,7 +355,8 @@ def order_draft(code, items):
 
 # ---------- notification ----------
 def notify(by_site, failing, orders=None):
-    """Print and email the alerts. Returns True if an email was sent."""
+    """Print the alerts and send them to every configured channel (email, Discord).
+    Returns True if at least one channel delivered them."""
     lines, rows = [], []
     for code, items in (orders or {}).items():
         subject, body = order_draft(code, items)
@@ -387,8 +389,50 @@ def notify(by_site, failing, orders=None):
         rows.append(f"<p><b>!! {htmllib.escape(name)}</b> has failed 3 runs in a row - check the parser</p>")
     text, html = "\n".join(lines), "".join(rows)
     print(text)
-    if not os.getenv("SMTP_HOST"):
-        return False
+    sent = False
+    for name, send, enabled in (("Discord", lambda: send_discord(by_site, failing, orders), "DISCORD_WEBHOOK"),
+                                ("email", lambda: send_email(by_site, orders, text, html), "SMTP_HOST")):
+        if not os.getenv(enabled):
+            continue
+        try:  # one channel failing must not stop the other
+            send()
+            sent = True
+        except Exception as e:
+            print(f"!! sending to {name} failed: {e}", file=sys.stderr)
+    return sent
+
+
+def send_discord(by_site, failing, orders):
+    msgs = []
+    for code, items in (orders or {}).items():
+        subject, body = order_draft(code, items)
+        wa = f"https://wa.me/{KAI_WHATSAPP}?text={quote(body)}"
+        msgs.append(f"🟢 **ORDER NOW: Kai {code} booster box available**\n"
+                    + "".join(f"[{n['title']}](<{n['url']}>) · EUR {n['price']:g}\n" for n in items)
+                    + f"\n👉 **[WhatsApp Kai]({wa})**\n"
+                      f"Email to {KAI_EMAIL}, subject `{subject}`:\n```\n{body}\n```")
+    for site, alerts in by_site.values():
+        cur = site.get("cur", "R")
+        block = f"**{site['name']}**\n"
+        for tag, n in alerts:
+            price = f"{cur}{n['price']:g}" if n["price"] is not None else "?"
+            line = f"`{tag}` [{n['title']}](<{n['url']}>) · {price}\n"
+            if len(block) + len(line) > 1900:  # Discord's 2000-character message limit
+                msgs.append(block)
+                block = f"**{site['name']}** (cont.)\n"
+            block += line
+        msgs.append(block)
+    msgs += [f"⚠️ **{name}** has failed 3 runs in a row - check the parser" for name in failing]
+    for content in msgs:
+        r = requests.post(os.environ["DISCORD_WEBHOOK"], json={"content": content}, timeout=30)
+        if r.status_code == 429:  # rate limited: wait as told, then retry once
+            time.sleep(float(r.json().get("retry_after", 2)))
+            r = requests.post(os.environ["DISCORD_WEBHOOK"], json={"content": content}, timeout=30)
+        r.raise_for_status()
+        time.sleep(0.5)
+
+
+def send_email(by_site, orders, text, html):
     n_alerts = sum(len(a) for _, a in by_site.values())
     msg = EmailMessage()
     if orders:
@@ -404,7 +448,6 @@ def notify(by_site, failing, orders=None):
         s.starttls()
         s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASS"])
         s.send_message(msg)
-    return True
 
 
 # ---------- main ----------
@@ -419,7 +462,14 @@ def main():
     ap.add_argument("--site", help="run a single store by name")
     ap.add_argument("--dry-run", action="store_true", help="no email, don't touch state")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--test-alert", action="store_true", help="send a sample Kai order alert and exit")
     a = ap.parse_args()
+    if a.test_alert:
+        n = {"title": "TEST - One Piece Card Game - [OP-99] - Booster Box -Preorder-", "price": 165.25,
+             "available": True, "url": "https://kaiofcards.com/collections/preorder"}
+        if not notify({}, [], {"OP99": [n]}):
+            sys.exit("test alert was not delivered: no channel configured or sending failed (see above)")
+        return
     if a.list:
         for s in SITES:
             print(f"{s['name']:28} {s['platform']:12} {group_of(s)}")
@@ -466,6 +516,7 @@ def main():
     if by_site or failing or orders:
         if a.dry_run:
             os.environ.pop("SMTP_HOST", None)
+            os.environ.pop("DISCORD_WEBHOOK", None)
         # remember a set only once its alert email actually went out, so it is never lost
         if notify(by_site, failing, orders) and orders and not a.dry_run:
             stamp = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
