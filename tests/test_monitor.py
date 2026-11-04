@@ -22,6 +22,12 @@ GENERIC = """<div class="grid"><div class="card"><a href="/product/one-piece-rou
 <div class="card"><a href="/product/sold-thing">Sold Thing Booster Box</a><span>R 100,00</span><span>Sold out</span></div></div>"""
 
 
+def test_empty_env_uses_default():
+    os.environ["ORDER_QTY"] = ""  # how GitHub passes an unset secret/variable
+    assert m.env("ORDER_QTY", "2") == "2"
+    del os.environ["ORDER_QTY"]
+
+
 def test_to_float():
     assert m.to_float("R 1 199,00") == 1199.0
     assert m.to_float("R3,593.00") == 3593.0

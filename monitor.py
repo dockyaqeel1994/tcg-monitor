@@ -26,9 +26,15 @@ from bs4 import BeautifulSoup
 
 from sites import SITES
 
-STATE_DIR = Path(os.getenv("STATE_DIR", "state"))
-SINGLES_MIN = float(os.getenv("SINGLES_MIN", "500"))
-DROP_PCT = float(os.getenv("DROP_PCT", "10")) / 100
+
+def env(name, default):
+    """os.getenv, but treats an empty value as unset (GitHub passes unset vars/secrets as "")."""
+    return os.getenv(name) or default
+
+
+STATE_DIR = Path(env("STATE_DIR", "state"))
+SINGLES_MIN = float(env("SINGLES_MIN", "500"))
+DROP_PCT = float(env("DROP_PCT", "10")) / 100
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
       "Chrome/124.0 Safari/537.36")
 KAI_EMAIL, KAI_WHATSAPP = "info@kaiofcards.com", "31612147379"
@@ -307,10 +313,10 @@ CODE_RE = re.compile(r"\b(OP|EB|PRB|ST)[- ]?(\d{2})\b", re.I)
 
 def order_draft(alerts):
     orderable = {n["url"]: n for t, n in alerts if n["available"] and not t.startswith("PRICE")}.values()
-    qty = os.getenv("ORDER_QTY", "2")
-    name = os.getenv("ORDER_NAME", "[YOUR NAME]")
-    phone = os.getenv("ORDER_PHONE", "[YOUR WHATSAPP]")
-    addr = os.getenv("ORDER_ADDRESS", "[YOUR ADDRESS, SOUTH AFRICA]")
+    qty = env("ORDER_QTY", "2")
+    name = env("ORDER_NAME", "[YOUR NAME]")
+    phone = env("ORDER_PHONE", "[YOUR WHATSAPP]")
+    addr = env("ORDER_ADDRESS", "[YOUR ADDRESS, SOUTH AFRICA]")
     pool = list(orderable) or [n for _, n in alerts]
     codes = []
     for n in pool:
@@ -365,7 +371,7 @@ def notify(by_site, failing):
     msg["From"], msg["To"] = os.environ["SMTP_USER"], os.environ["MAIL_TO"]
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
-    with smtplib.SMTP(os.environ["SMTP_HOST"], int(os.getenv("SMTP_PORT", 587))) as s:
+    with smtplib.SMTP(os.environ["SMTP_HOST"], int(env("SMTP_PORT", 587))) as s:
         s.starttls()
         s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASS"])
         s.send_message(msg)
