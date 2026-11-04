@@ -92,6 +92,15 @@ def test_diff_eur_threshold():
     assert m.diff({}, new, 500 / 20) and not m.diff({}, new, 500)
 
 
+def test_boxes_only():
+    alerts = [("NEW", item("[Pre-Order] One Piece OP-18 The Dominance Of God Booster Box", 4079.99)),
+              ("NEW (sold out)", item("One Piece EB-05 Booster Box", 4079.99, False)),
+              ("BACK IN STOCK", item("One Piece OP-17 Booster Pack", 80)),
+              ("NEW", item("One Piece OP-16 Booster Box Case (12)", 48000))]
+    assert [n["title"][:30] for _, n in m.boxes_only(alerts)] == [
+        "[Pre-Order] One Piece OP-18 Th", "One Piece OP-16 Booster Box Ca"]
+
+
 def test_kai_draft():
     os.environ.update(ORDER_NAME="A Name", ORDER_ADDRESS="1 Street, Johannesburg", ORDER_PHONE="+27 00")
     n = {"title": "One Piece Card Game - [EB-05] - Booster Box", "price": 199.95, "available": True, "url": "u"}

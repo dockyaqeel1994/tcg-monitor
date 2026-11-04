@@ -321,12 +321,17 @@ def diff(old, new, singles_min=SINGLES_MIN):
 CODE_RE = re.compile(r"\b(OP|EB|PRB|ST)[- ]?(\d{2})\b", re.I)
 
 
-BOX_RE = re.compile(r"booster\s*box", re.I)
+BOX_RE = re.compile(r"booster\s*box|box\s*case|\bdisplay\b", re.I)
 
 
 def set_code(n):
     m = CODE_RE.search(n["title"])
     return (m.group(1) + m.group(2)).upper() if m else n["url"]
+
+
+def boxes_only(alerts):
+    """Keep alerts for booster boxes/cases that can be bought now (drops sold-out listings)."""
+    return [(t, n) for t, n in alerts if n["available"] and BOX_RE.search(n["title"])]
 
 
 def kai_orders(items, done):
@@ -452,8 +457,8 @@ def send_email(by_site, orders, text, html):
 
 # ---------- main ----------
 def group_of(site):
-    """kai: Kai order pages (own fast workflow), js: needs a browser, http: everything else."""
-    return "kai" if site.get("order") == "kai" else "js" if site.get("js") else "http"
+    """kai: priority pages on the fast 30-min workflow, js: needs a browser, http: everything else."""
+    return "kai" if site.get("order") == "kai" or site.get("fast") else "js" if site.get("js") else "http"
 
 
 def main():
@@ -501,11 +506,17 @@ def main():
                     orders[code] += [n for n in items if n["url"] not in {x["url"] for x in orders[code]}]
             if path.exists():
                 alerts = diff(json.loads(path.read_text()), new, SINGLES_MIN / site.get("fx", 1))
+            elif site.get("boxes"):  # first run: report what is in stock right now
+                alerts = [("IN STOCK", n) for n in new.values()]
+            else:
+                alerts = None
+                print(f"[{site['name']}] first run: saved baseline of {len(new)} products")
+            if alerts is not None:
+                if site.get("boxes"):
+                    alerts = boxes_only(alerts)
                 print(f"[{site['name']}] {len(new)} products, {len(alerts)} alert(s)")
                 if alerts and not site.get("orders_only"):
                     by_site[site["name"]] = (site, alerts)
-            else:
-                print(f"[{site['name']}] first run: saved baseline of {len(new)} products")
             if not a.dry_run:
                 path.write_text(json.dumps(new, indent=1))
             time.sleep(1)

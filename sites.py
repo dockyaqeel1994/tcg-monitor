@@ -16,6 +16,8 @@ cur: currency symbol used in alerts (default "R")
      Kai prices are the Shopify feed price, which is ex 21% Dutch VAT: that is what an export
      order to South Africa pays (site shows incl. VAT, e.g. 199.95 vs 165.25 charged).
 fx: ZAR per unit of the store's currency, so the R singles threshold applies in EUR too
+fast: True -> checked every 30 min with the Kai preorder page (Shopify stores only: quick)
+boxes: True -> only alert for booster boxes/cases that are in stock (incl. on the first run)
 orders_only: True -> post only the order alerts, not every new/restocked/cheaper item
 order: "kai" -> checked by the fast Kai workflow; when a One Piece booster box is available, the
               alert includes a ready-to-send order email/WhatsApp to Kai (once per set)
@@ -24,6 +26,8 @@ order: "kai" -> checked by the fast Kai workflow; when a One Piece booster box i
 SITES = [
     {"name": "Knightly Gaming", "platform": "shopify",
      "url": "https://www.knightlygaming.co.za/collections/one-piece-singles"},
+    {"name": "Knightly Gaming - sealed", "platform": "shopify", "fast": True, "boxes": True,
+     "url": "https://www.knightlygaming.co.za/collections/one-piece-sealed"},
     {"name": "Big Bang Shop", "platform": "shopify",
      "url": "https://bigbangshop.co.za/collections/one-piece-single-cards"},
     {"name": "CG Haven", "platform": "html", "link_re": r"/product/",
