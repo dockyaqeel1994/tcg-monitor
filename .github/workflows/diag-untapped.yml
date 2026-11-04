@@ -18,13 +18,14 @@ jobs:
               pg = b.new_page(locale="en-ZA")
               for url in [base + "/category/onepiece?type=pre", base + "/category/onepiece?type=sealed"]:
                   pg.goto(url, wait_until="domcontentloaded", timeout=60000)
-                  pg.wait_for_timeout(7000)
+                  pg.wait_for_timeout(15000)
                   print(f"=== {url}")
                   nxt = pg.eval_on_selector_all("a", "e => e.filter(x => /next/i.test(x.innerText)).map(x => x.href)")
                   print("next links:", nxt)
-                  links = pg.eval_on_selector_all("a[href*='/product']", "e => e.map(x => x.href)")
-                  print("product links:", len(set(links)))
-                  for line in pg.inner_text("main") .splitlines() if pg.locator("main").count() else pg.inner_text("body").splitlines():
-                      if re.search(r"R ?\d|booster|box|pack|collection|sold|stock|pre", line, re.I):
-                          print("  |", line.strip()[:120])
+                  links = sorted(set(pg.eval_on_selector_all("a[href*='/product']", "e => e.map(x => x.href)")))
+                  print("product links:", len(links), links[:10])
+                  body = [l.strip() for l in pg.inner_text("body").splitlines() if l.strip()]
+                  k = next((i for i, l in enumerate(body) if l.upper() == "PRE-ORDERS"), 0)
+                  for l in body[k:k + 70]:
+                      print("  |", l[:120])
               b.close()
