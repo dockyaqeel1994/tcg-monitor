@@ -15,7 +15,7 @@ feed: explicit Shopify JSON feed (when the given URL is a page/search, not a col
 cur: currency symbol used in alerts (default "R")
      Kai prices are the Shopify feed price, which is ex 21% Dutch VAT: that is what an export
      order to South Africa pays (site shows incl. VAT, e.g. 199.95 vs 165.25 charged).
-fx: ZAR per unit of the store's currency, so the R singles threshold applies in EUR too
+fx: ZAR per unit of the store's currency (for the singles threshold and price comparisons)
 fast: True -> checked every 30 min with the Kai preorder page (Shopify stores only: quick)
 sealed: True -> only alert for sealed product that can be bought (no singles/accessories), booster
               boxes and preorders labelled; first run reports what's in stock. Default for every store.
@@ -46,7 +46,7 @@ SITES = [
     #  "url": "https://marvelloushobbies.com/universe/sports-cards/one-piece/"},
     {"name": "Card Cache (OP17)", "platform": "shopify",
      "url": "https://cardcache.co.za/collections/op-17"},
-    {"name": "Kai of Cards - preorder", "platform": "shopify", "cur": "EUR ", "order": "kai",
+    {"name": "Kai of Cards - preorder", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai",
      "orders_only": True, "filter": True,
      "url": "https://kaiofcards.com/collections/preorder"},
     {"name": "Level Up Store", "platform": "shopify",

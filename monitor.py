@@ -334,6 +334,60 @@ def diff(old, new, singles_min=SINGLES_MIN):
     return alerts
 
 
+# ---------- price comparison ----------
+KINDS = [("case", re.compile(r"\bcase\b", re.I)), ("booster box", re.compile(r"booster\s*box|\bdisplay\b", re.I)),
+         ("double pack", re.compile(r"double pack", re.I)), ("pack", re.compile(r"\bpack\b", re.I))]
+PRODUCT_CODE_RE = re.compile(r"\b(OP|EB|PRB|DP|IB)[- ]?(\d{2})\b", re.I)
+FILLER_RE = re.compile(r"\b(?:one piece|card game|tcg|english|version|pre-?order|official|the|edition|"
+                       r"vol)\b|[^a-z0-9 ]", re.I)
+
+
+def product_key(title):
+    """Same product at different stores -> same key, e.g. 'booster box OP17' or
+    'other premium card collection live action'."""
+    kind = next((k for k, r in KINDS if r.search(title)), "other")
+    m = PRODUCT_CODE_RE.search(title)
+    if m:
+        return f"{kind} {m.group(1).upper()}{m.group(2)}"
+    return f"{kind} {' '.join(FILLER_RE.sub(' ', title.lower()).split())}"
+
+
+def catalog():
+    """English sealed listings across all stores' saved state: (store, url, key, ZAR price, in stock)."""
+    out = []
+    for site in SITES:
+        path = STATE_DIR / f"{slug(site['name'])}.json"
+        if not path.exists():
+            continue
+        for n in json.loads(path.read_text()).values():
+            if n["price"] and is_sealed(n["title"]) and not NON_ENGLISH_RE.search(n["title"]):
+                out.append((site["name"], n["url"], product_key(n["title"]), n["price"] * site.get("fx", 1),
+                            n["available"]))
+    return out
+
+
+def compare(n, site, cat):
+    """One-line price comparison of an alert against the same product at the other stores."""
+    if not n["price"]:
+        return ""
+    key, mine = product_key(n["title"]), n["price"] * site.get("fx", 1)
+    same = [(p, s, avail) for s, url, k, p, avail in cat if k == key and url != n["url"]]
+    others = sorted((p, s) for p, s, avail in same if avail)
+    if not others:
+        sold = sorted((p, s) for p, s, avail in same if not avail)
+        if not sold:
+            return "no other tracked store lists this"
+        p, s = sold[0]
+        extra = " + shipping" if s.startswith("Kai") else ""
+        flag = "⚠️ " if mine > p * 1.25 else ""
+        return f"{flag}only store in stock; sold out elsewhere at R{p:,.0f}{extra} ({s})"
+    p, s = others[0]
+    extra = " + shipping" if s.startswith("Kai") else ""
+    if mine <= p:
+        return f"✅ cheapest of {len(others) + 1} stores (next: R{p:,.0f}{extra} at {s})"
+    return f"⚠️ cheaper at {s}: R{p:,.0f}{extra} ({(mine - p) / mine:.0%} less)"
+
+
 # ---------- Kai order draft ----------
 CODE_RE = re.compile(r"\b(OP|EB|PRB|ST)[- ]?(\d{2})\b", re.I)
 
@@ -412,9 +466,10 @@ def notify(by_site, failing, orders=None):
         rows.append(f"<h3>{htmllib.escape(site['name'])}</h3><ul>")
         for tag, n in alerts:
             price = f"{cur}{n['price']:g}" if n["price"] is not None else "?"
-            lines.append(f"[{tag}] {n['title']} - {price}\n  {n['url']}")
+            cmp = f" | {n['cmp']}" if n.get("cmp") else ""
+            lines.append(f"[{tag}] {n['title']} - {price}{cmp}\n  {n['url']}")
             rows.append(f"<li><b>{htmllib.escape(tag)}</b>: <a href='{n['url']}'>"
-                        f"{htmllib.escape(n['title'])}</a> - {price}</li>")
+                        f"{htmllib.escape(n['title'])}</a> - {price}{htmllib.escape(cmp)}</li>")
         rows.append("</ul>")
     for name in failing:
         lines.append(f"!! {name} has failed 3 runs in a row - check the parser")
@@ -448,7 +503,8 @@ def send_discord(by_site, failing, orders):
         block = f"**{site['name']}**\n"
         for tag, n in alerts:
             price = f"{cur}{n['price']:g}" if n["price"] is not None else "?"
-            line = f"`{tag}` [{n['title']}](<{n['url']}>) · {price}\n"
+            cmp = f"\n  ↳ {n['cmp']}" if n.get("cmp") else ""
+            line = f"`{tag}` [{n['title']}](<{n['url']}>) · {price}{cmp}\n"
             if len(block) + len(line) > 1900:  # Discord's 2000-character message limit
                 msgs.append(block)
                 block = f"**{site['name']}** (cont.)\n"
@@ -551,6 +607,11 @@ def main():
         f.close()
     if not a.dry_run:
         health_path.write_text(json.dumps(health, indent=1))
+    if by_site:
+        cat = catalog()
+        for site, alerts in by_site.values():
+            alerts[:] = [(t, {**n, "cmp": compare(n, site, cat)}) if site.get("sealed") else (t, n)
+                         for t, n in alerts]
     if by_site or failing or orders:
         if a.dry_run:
             os.environ.pop("SMTP_HOST", None)

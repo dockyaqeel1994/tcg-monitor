@@ -7,6 +7,9 @@ is **new**, **back in stock**, or has a **price drop**.
   double packs, premium collections...). Singles, starter decks/deck sets, non-English (Japanese,
   Chinese...) product, accessories and sold-out listings are ignored.
   Booster boxes are listed first and preorders are labelled `PREORDER`.
+- **Price comparison:** each sealed alert shows how its price compares to the same product at the
+  other tracked stores (in stock, or a sold-out reference price such as Kai's), e.g.
+  `⚠️ cheaper at CG Haven: R800 (33% less)` or `✅ cheapest of 3 stores`.
 - **Kai of Cards (priority):** only the preorder page is watched, every 30 minutes, by its own
   workflow, and it only posts order alerts (no other Kai noise). When a One Piece **booster box** is available, you get an "ORDER NOW" email
   with a ready-to-send order to Kai (email + WhatsApp), e.g. "I'd like to preorder 1 x EB05 Case

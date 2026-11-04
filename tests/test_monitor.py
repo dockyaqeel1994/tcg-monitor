@@ -112,6 +112,24 @@ def test_sealed_only():
     assert tags == ["BOOSTER BOX PREORDER NEW", "NEW", "BACK IN STOCK"]  # box, double pack, premium
 
 
+def test_price_compare():
+    k = m.product_key
+    assert k("One Piece Card Game: Booster Box (OP-17) – The World's Strongest Warriors") == k(
+        "[Pre-Order] One Piece OP17 Booster Box") == "booster box OP17"
+    assert k("One Piece Card Game: Premium Card Collection - Live Action") == k(
+        "ONE PIECE Official Premium Card Collection -Live Action Edition")
+    assert k("One Piece TCG: Extra Booster Pack (EB-05)") != k("One Piece TCG: Extra Booster Box (EB-05)")
+    cat = [("Geek Home", "g", "booster box OP17", 7360.0, True),
+           ("Kai of Cards - preorder", "k", "booster box OP17", 3305.0, True),
+           ("Knightly Gaming - sealed", "n", "booster box EB05", 4080.0, False)]
+    box = item("One Piece Booster Box (OP-17)", 6500)
+    assert m.compare(box, {}, cat) == "⚠️ cheaper at Kai of Cards - preorder: R3,305 + shipping (49% less)"
+    assert m.compare(item("OP-17 Booster Box", 3000), {}, cat).startswith("✅ cheapest of 3 stores")
+    assert m.compare(item("Double Pack Set (DP-13)", 450), {}, cat) == "no other tracked store lists this"
+    assert m.compare(item("Extra Booster Box (EB-05)", 6500), {}, cat) == (
+        "⚠️ only store in stock; sold out elsewhere at R4,080 (Knightly Gaming - sealed)")
+
+
 def test_kai_draft():
     os.environ.update(ORDER_NAME="A Name", ORDER_ADDRESS="1 Street, Johannesburg", ORDER_PHONE="+27 00")
     n = {"title": "One Piece Card Game - [EB-05] - Booster Box", "price": 199.95, "available": True, "url": "u"}
