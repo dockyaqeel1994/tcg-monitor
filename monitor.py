@@ -502,7 +502,7 @@ def main():
             if path.exists():
                 alerts = diff(json.loads(path.read_text()), new, SINGLES_MIN / site.get("fx", 1))
                 print(f"[{site['name']}] {len(new)} products, {len(alerts)} alert(s)")
-                if alerts:
+                if alerts and not site.get("orders_only"):
                     by_site[site["name"]] = (site, alerts)
             else:
                 print(f"[{site['name']}] first run: saved baseline of {len(new)} products")

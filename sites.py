@@ -16,6 +16,7 @@ cur: currency symbol used in alerts (default "R")
      Kai prices are the Shopify feed price, which is ex 21% Dutch VAT: that is what an export
      order to South Africa pays (site shows incl. VAT, e.g. 199.95 vs 165.25 charged).
 fx: ZAR per unit of the store's currency, so the R singles threshold applies in EUR too
+orders_only: True -> post only the order alerts, not every new/restocked/cheaper item
 order: "kai" -> checked by the fast Kai workflow; when a One Piece booster box is available, the
               alert includes a ready-to-send order email/WhatsApp to Kai (once per set)
 """
@@ -44,14 +45,9 @@ SITES = [
     #  "url": "https://marvelloushobbies.com/universe/sports-cards/one-piece/"},
     {"name": "Card Cache (OP17)", "platform": "shopify",
      "url": "https://cardcache.co.za/collections/op-17"},
-    {"name": "Kai of Cards - singles", "platform": "shopify", "cur": "EUR ", "fx": 20,
-     "url": "https://kaiofcards.com/collections/one-piece-singles"},
-    {"name": "Kai of Cards - sealed", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai",
-     "url": "https://kaiofcards.com/collections/one-piece-sealed"},
-    {"name": "Kai of Cards - preorder", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai", "filter": True,
+    {"name": "Kai of Cards - preorder", "platform": "shopify", "cur": "EUR ", "order": "kai",
+     "orders_only": True, "filter": True,
      "url": "https://kaiofcards.com/collections/preorder"},
-    {"name": "Kai of Cards - new", "platform": "shopify", "cur": "EUR ", "fx": 20, "order": "kai", "filter": True,
-     "url": "https://kaiofcards.com/collections/new-online"},
     {"name": "Level Up Store", "platform": "shopify",
      "url": "https://levelupstore.co.za/collections/one-piece-in-stock"},
     {"name": "Geek Home", "platform": "woocommerce",

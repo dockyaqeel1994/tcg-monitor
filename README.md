@@ -5,8 +5,8 @@ is **new**, **back in stock**, or has a **price drop**.
 
 - **Sealed** (boxes, cases, packs, decks) always alerts.
 - **Singles** only alert at or above `SINGLES_MIN` (default R500), so cheap commons don't flood you.
-- **Kai of Cards (priority):** the preorder, sealed and new pages are checked every 30 minutes by
-  their own workflow. When a One Piece **booster box** is available, you get an "ORDER NOW" email
+- **Kai of Cards (priority):** only the preorder page is watched, every 30 minutes, by its own
+  workflow, and it only posts order alerts (no other Kai noise). When a One Piece **booster box** is available, you get an "ORDER NOW" email
   with a ready-to-send order to Kai (email + WhatsApp), e.g. "I'd like to preorder 1 x EB05 Case
   (12 boxes)". Change the wording with the `ORDER_ITEM` variable. One alert
   per set, ever (tracked in `state/_kai_orders.json`; delete a set's entry to be alerted again).
