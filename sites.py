@@ -36,10 +36,12 @@ SITES = [
      "url": "https://bigbangshop.co.za/collections/one-piece-tcg"},
     {"name": "Armchair Generals", "platform": "shopify", "fast": True,
      "url": "https://armchairgenerals.co.za/collections/shop-one-piece"},
-    {"name": "Aniware Sealed", "platform": "shopify",
+    {"name": "Aniware Sealed", "platform": "shopify", "fast": True,
      "url": "https://sealed.aniware.co.za/collections/one-piece-card-game"},
     # {"name": "AI Fest", "platform": "prestashop", "js": True,
     #  "url": "https://store.ai-fest.co.za/366-one-piece-card-game"},
+    # One Piece here is ~all singles (Nov 2026: 162 singles, 1 sealed); its ?type=sealed / ?type=pre views
+    # don't render products for a headless browser, so the main category is read instead
     {"name": "Untapped Potential", "platform": "html", "js": True, "link_re": r"/product",
      "url": "https://www.untappedpotentialtcg.co.za/category/onepiece?sort=price-desc"},
     # {"name": "Tanuki Trader", "platform": "woocommerce", "js": True, "filter": True,
