@@ -32,6 +32,8 @@ SITES = [
     {"name": "Blist Collectibles", "platform": "shopify", "filter": True,
      "url": "https://blistcollectibles.co.za/pages/onepiece",
      "feed": "https://blistcollectibles.co.za/collections/shop-all/products.json"},
+    {"name": "Big Bang Shop", "platform": "shopify", "fast": True,
+     "url": "https://bigbangshop.co.za/collections/one-piece-tcg"},
     {"name": "Armchair Generals", "platform": "shopify", "fast": True,
      "url": "https://armchairgenerals.co.za/collections/shop-one-piece"},
     {"name": "Aniware Sealed", "platform": "shopify",
