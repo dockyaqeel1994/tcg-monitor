@@ -3,8 +3,9 @@
 Watches ~20 South African (and Kai of Cards) One Piece TCG store pages and emails you when something
 is **new**, **back in stock**, or has a **price drop**.
 
-- **Sealed** (boxes, cases, packs, decks) always alerts.
-- **Singles** only alert at or above `SINGLES_MIN` (default R500), so cheap commons don't flood you.
+- **Sealed only:** alerts are for sealed One Piece product you can buy now (booster boxes, packs,
+  starter decks, premium collections...). Singles, accessories and sold-out listings are ignored.
+  Booster boxes are listed first and preorders are labelled `PREORDER`.
 - **Kai of Cards (priority):** only the preorder page is watched, every 30 minutes, by its own
   workflow, and it only posts order alerts (no other Kai noise). When a One Piece **booster box** is available, you get an "ORDER NOW" email
   with a ready-to-send order to Kai (email + WhatsApp), e.g. "I'd like to preorder 1 x EB05 Case

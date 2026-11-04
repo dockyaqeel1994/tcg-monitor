@@ -17,25 +17,22 @@ cur: currency symbol used in alerts (default "R")
      order to South Africa pays (site shows incl. VAT, e.g. 199.95 vs 165.25 charged).
 fx: ZAR per unit of the store's currency, so the R singles threshold applies in EUR too
 fast: True -> checked every 30 min with the Kai preorder page (Shopify stores only: quick)
-boxes: True -> only alert for booster boxes/cases that are in stock (incl. on the first run)
+sealed: True -> only alert for sealed product that can be bought (no singles/accessories), booster
+              boxes and preorders labelled; first run reports what's in stock. Default for every store.
 orders_only: True -> post only the order alerts, not every new/restocked/cheaper item
 order: "kai" -> checked by the fast Kai workflow; when a One Piece booster box is available, the
               alert includes a ready-to-send order email/WhatsApp to Kai (once per set)
 """
 
 SITES = [
-    {"name": "Knightly Gaming", "platform": "shopify",
-     "url": "https://www.knightlygaming.co.za/collections/one-piece-singles"},
-    {"name": "Knightly Gaming - sealed", "platform": "shopify", "fast": True, "boxes": True,
+    {"name": "Knightly Gaming - sealed", "platform": "shopify", "fast": True,
      "url": "https://www.knightlygaming.co.za/collections/one-piece-sealed"},
-    {"name": "Big Bang Shop", "platform": "shopify",
-     "url": "https://bigbangshop.co.za/collections/one-piece-single-cards"},
     {"name": "CG Haven", "platform": "html", "link_re": r"/product/",
      "url": "https://cghaven.co.za/shop/game/one-piece?game=one-piece&availability=in_stock&sort=newest"},
     {"name": "Blist Collectibles", "platform": "shopify", "filter": True,
      "url": "https://blistcollectibles.co.za/pages/onepiece",
      "feed": "https://blistcollectibles.co.za/collections/shop-all/products.json"},
-    {"name": "Armchair Generals", "platform": "shopify", "fast": True, "boxes": True,
+    {"name": "Armchair Generals", "platform": "shopify", "fast": True,
      "url": "https://armchairgenerals.co.za/collections/shop-one-piece"},
     {"name": "Aniware Sealed", "platform": "shopify",
      "url": "https://sealed.aniware.co.za/collections/one-piece-card-game"},
@@ -65,3 +62,6 @@ SITES = [
     {"name": "Rebelz Collectibles", "platform": "shopify", "filter": True,
      "url": "https://rebelzcollectibles.co.za/products"},
 ]
+
+for _s in SITES:  # only sealed product for now (no singles); set "sealed": False on a store to undo
+    _s.setdefault("sealed", True)

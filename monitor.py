@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Multi-store One Piece TCG stock monitor.
 
-Alerts on: NEW listings, BACK IN STOCK, PRICE DROP. Sealed product (boxes, cases, packs,
+Alerts on: NEW listings, BACK IN STOCK, PRICE DROP. Stores with "sealed": True (all of them by
+default) only report sealed product that can be bought, booster boxes and preorders labelled.
+Without it: sealed product (boxes, cases, packs,
 decks...) always alerts; singles only alert at or above SINGLES_MIN (ZAR) so you don't get
 flooded with R20 commons.
 
@@ -294,8 +296,20 @@ def snapshot(site, f):
 
 
 # ---------- diff / alerts ----------
+ACCESSORY_RE = re.compile(r"sleeve|playmat|play mat|counter|deck ?box|binder|holder|toploader|top loader|"
+                          r"protector|storage|dice|card case|portfolio|figure|banpresto|plush|keychain", re.I)
+PREORDER_RE = re.compile(r"pre-?order|presale|pre-sale", re.I)
+
+
+# singles often name the set they come from ("Nami (EB03-006) [Extra Booster: ...] Foil")
+SINGLE_RE = re.compile(r"\b[A-Z]{1,3}\d{0,2}-\d{3}\b|\b(?:common|uncommon|rare|alternate art|alt art|full art|"
+                       r"foil|parallel|SP|SEC|DON!!)\b", re.I)
+
+
 def is_sealed(title):
-    return bool(SEALED_RE.search(title))
+    # ignore text in brackets/parentheses: a set name there means a single card or a "(Blind Box)" toy
+    core = re.sub(r"\[(?!pre-?order)[^\]]*\]|\([^)]*\)", " ", title, flags=re.I)
+    return bool(SEALED_RE.search(core)) and not ACCESSORY_RE.search(title) and not SINGLE_RE.search(title)
 
 
 def diff(old, new, singles_min=SINGLES_MIN):
@@ -329,9 +343,18 @@ def set_code(n):
     return (m.group(1) + m.group(2)).upper() if m else n["url"]
 
 
-def boxes_only(alerts):
-    """Keep alerts for booster boxes/cases that can be bought now (drops sold-out listings)."""
-    return [(t, n) for t, n in alerts if n["available"] and BOX_RE.search(n["title"])]
+def sealed_only(alerts):
+    """Keep sealed products that can be bought now; label preorders and booster boxes."""
+    out = []
+    for t, n in alerts:
+        if not (n["available"] and is_sealed(n["title"])):
+            continue
+        if PREORDER_RE.search(n["title"]):
+            t = "PREORDER " + t
+        if BOX_RE.search(n["title"]):
+            t = "BOOSTER BOX " + t
+        out.append((t, n))
+    return sorted(out, key=lambda a: not a[0].startswith("BOOSTER BOX"))  # boxes first
 
 
 def kai_orders(items, done):
@@ -506,14 +529,14 @@ def main():
                     orders[code] += [n for n in items if n["url"] not in {x["url"] for x in orders[code]}]
             if path.exists():
                 alerts = diff(json.loads(path.read_text()), new, SINGLES_MIN / site.get("fx", 1))
-            elif site.get("boxes"):  # first run: report what is in stock right now
+            elif site.get("sealed"):  # first run: report what is in stock right now
                 alerts = [("IN STOCK", n) for n in new.values()]
             else:
                 alerts = None
                 print(f"[{site['name']}] first run: saved baseline of {len(new)} products")
             if alerts is not None:
-                if site.get("boxes"):
-                    alerts = boxes_only(alerts)
+                if site.get("sealed"):
+                    alerts = sealed_only(alerts)
                 print(f"[{site['name']}] {len(new)} products, {len(alerts)} alert(s)")
                 if alerts and not site.get("orders_only"):
                     by_site[site["name"]] = (site, alerts)

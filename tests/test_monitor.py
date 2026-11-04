@@ -92,13 +92,19 @@ def test_diff_eur_threshold():
     assert m.diff({}, new, 500 / 20) and not m.diff({}, new, 500)
 
 
-def test_boxes_only():
-    alerts = [("NEW", item("[Pre-Order] One Piece OP-18 The Dominance Of God Booster Box", 4079.99)),
-              ("NEW (sold out)", item("One Piece EB-05 Booster Box", 4079.99, False)),
-              ("BACK IN STOCK", item("One Piece OP-17 Booster Pack", 80)),
-              ("NEW", item("One Piece OP-16 Booster Box Case (12)", 48000))]
-    assert [n["title"][:30] for _, n in m.boxes_only(alerts)] == [
-        "[Pre-Order] One Piece OP-18 Th", "One Piece OP-16 Booster Box Ca"]
+def test_sealed_only():
+    alerts = [("NEW", item("One Piece Starter Deck 36: YELLOW Kid", 399.99)),
+              ("NEW", item("[Pre-Order] One Piece OP-18 The Dominance Of God Booster Box", 4079.99)),
+              ("NEW (sold out)", item("One Piece EB-05 Booster Box", 4079.99, False)),     # can't buy
+              ("NEW", item("Luffy SP OP05-001", 900)),                                     # single
+              ("NEW", item("One Piece Rotating Power Counters Black and White (5) pack", 189)),  # accessory
+              ("BACK IN STOCK", item("One Piece Card Game: Premium Card Collection - Vol. 7", 999)),
+              ("NEW", item("Nami (006) (EB03-006) - Extra Booster: One Piece Heroines Edition Foil", 10)),
+              ("NEW", item("Usopp [Extra Booster: Anime 25th Collection]", 10)),
+              ("NEW", item("Bell-mere — Extra Booster: One Piece Heroines Edition Vol. 2 — Common", 8)),
+              ("NEW", item("Kayou One Piece Pen – Series 2 (Blind Box)", 95))]
+    tags = [t for t, _ in m.sealed_only(alerts)]
+    assert tags == ["BOOSTER BOX PREORDER NEW", "NEW", "BACK IN STOCK"]
 
 
 def test_kai_draft():
