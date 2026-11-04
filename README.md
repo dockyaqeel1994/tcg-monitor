@@ -4,8 +4,8 @@ Watches ~20 South African (and Kai of Cards) One Piece TCG store pages and email
 is **new**, **back in stock**, or has a **price drop**.
 
 - **Sealed only:** alerts are for sealed One Piece product you can buy now (booster boxes, packs,
-  double packs, premium collections...). Singles, starter decks/deck sets, accessories and sold-out
-  listings are ignored.
+  double packs, premium collections...). Singles, starter decks/deck sets, non-English (Japanese,
+  Chinese...) product, accessories and sold-out listings are ignored.
   Booster boxes are listed first and preorders are labelled `PREORDER`.
 - **Kai of Cards (priority):** only the preorder page is watched, every 30 minutes, by its own
   workflow, and it only posts order alerts (no other Kai noise). When a One Piece **booster box** is available, you get an "ORDER NOW" email

@@ -104,7 +104,10 @@ def test_sealed_only():
               ("NEW", item("Nami (006) (EB03-006) - Extra Booster: One Piece Heroines Edition Foil", 10)),
               ("NEW", item("Usopp [Extra Booster: Anime 25th Collection]", 10)),
               ("NEW", item("Bell-mere — Extra Booster: One Piece Heroines Edition Vol. 2 — Common", 8)),
-              ("NEW", item("Kayou One Piece Pen – Series 2 (Blind Box)", 95))]
+              ("NEW", item("Kayou One Piece Pen – Series 2 (Blind Box)", 95)),
+              ("NEW", item("One Piece Japanese | [Op-17] The World's Strongest Warriors | Booster Box", 2899)),
+              ("NEW", item("OP17 Booster Box (Japanese) - The World's Strongest Warriors [Pre-Order]", 3299)),
+              ("NEW", item("One Piece Chinese | Romance Dawn (OPC-01) | Chinese Booster Box", 1199))]
     tags = [t for t, _ in m.sealed_only(alerts)]
     assert tags == ["BOOSTER BOX PREORDER NEW", "NEW", "BACK IN STOCK"]  # box, double pack, premium
 
@@ -127,7 +130,8 @@ def test_kai_orders():
              "op17": item("One Piece Card Game - [OP-17] - Booster Box -Preorder-", 99.95, False),  # sold out
              "fb11": item("Dragon Ball Super Fusion World - Brightness Of Hope- [FB11] Booster Box -Preorder-", 150),
              "deck": item("One Piece Card Game - Starter Deck [ST-29] -Preorder-", 14.95),          # not a box
-             "lm09": item("[LM-09] -Preorder-", 29.95)}
+             "lm09": item("[LM-09] -Preorder-", 29.95),
+             "jp": item("One Piece Card Game - [OP-18] - Booster Box (Japanese) -Preorder-", 90)}
     assert list(m.kai_orders(items, {})) == ["EB05"]
     assert m.kai_orders(items, {"EB05": {}}) == {}   # one alert per set, ever
 

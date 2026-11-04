@@ -299,6 +299,8 @@ def snapshot(site, f):
 ACCESSORY_RE = re.compile(r"sleeve|playmat|play mat|counter|deck ?box|binder|holder|toploader|top loader|"
                           r"protector|storage|dice|card case|portfolio|figure|banpresto|plush|keychain", re.I)
 SKIP_RE = re.compile(r"starter deck|deck set|learn together", re.I)  # sealed, but not wanted
+NON_ENGLISH_RE = re.compile(r"japanese|chinese|korean|french|german|\b(?:JP|JPN|JAP|CN|CHN|KR|KOR)\b|"
+                            r"\bOPC-\d|simplified|traditional", re.I)  # English product only
 PREORDER_RE = re.compile(r"pre-?order|presale|pre-sale", re.I)
 
 
@@ -348,7 +350,8 @@ def sealed_only(alerts):
     """Keep sealed products that can be bought now; label preorders and booster boxes."""
     out = []
     for t, n in alerts:
-        if not (n["available"] and is_sealed(n["title"])) or SKIP_RE.search(n["title"]):
+        if (not (n["available"] and is_sealed(n["title"])) or SKIP_RE.search(n["title"])
+                or NON_ENGLISH_RE.search(n["title"])):
             continue
         if PREORDER_RE.search(n["title"]):
             t = "PREORDER " + t
@@ -363,7 +366,7 @@ def kai_orders(items, done):
     out = {}
     for n in items.values():
         if (n["available"] and BOX_RE.search(n["title"]) and OP_RE.search(n["title"])
-                and set_code(n) not in done):
+                and not NON_ENGLISH_RE.search(n["title"]) and set_code(n) not in done):
             out.setdefault(set_code(n), []).append(n)
     return out
 
