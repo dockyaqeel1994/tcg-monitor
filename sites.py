@@ -6,8 +6,10 @@ platform:
   prestashop   parses the product grid HTML, paginates with ?page=N
   html         generic parser for server-rendered custom shops (link_re = product URL pattern)
 
-js: True  -> page is rendered with Playwright first (group "js", runs less often). Also used for
-            stores that return 403 to plain requests from GitHub's servers (AI Fest, Tanuki, Marvellous).
+js: True  -> page is rendered with Playwright first (group "js", runs less often)
+
+Commented-out stores (AI Fest, Tanuki Trader, Marvellous Hobbies) block GitHub's servers with
+Cloudflare/403, even through a real browser. They can't be monitored from GitHub Actions.
 filter: True -> the URL is not One Piece only, keep just One Piece products
 feed: explicit Shopify JSON feed (when the given URL is a page/search, not a collection)
 cur: currency symbol used in alerts (default "R")
@@ -29,14 +31,14 @@ SITES = [
      "url": "https://armchairgenerals.co.za/collections/shop-one-piece"},
     {"name": "Aniware Sealed", "platform": "shopify",
      "url": "https://sealed.aniware.co.za/collections/one-piece-card-game"},
-    {"name": "AI Fest", "platform": "prestashop", "js": True,
-     "url": "https://store.ai-fest.co.za/366-one-piece-card-game"},
+    # {"name": "AI Fest", "platform": "prestashop", "js": True,
+    #  "url": "https://store.ai-fest.co.za/366-one-piece-card-game"},
     {"name": "Untapped Potential", "platform": "html", "js": True, "link_re": r"/product",
      "url": "https://www.untappedpotentialtcg.co.za/category/onepiece?sort=price-desc"},
-    {"name": "Tanuki Trader", "platform": "woocommerce", "js": True, "filter": True,
-     "url": "https://tanukitrader.co.za/shop/"},
-    {"name": "Marvellous Hobbies", "platform": "woocommerce", "js": True,
-     "url": "https://marvelloushobbies.com/universe/sports-cards/one-piece/"},
+    # {"name": "Tanuki Trader", "platform": "woocommerce", "js": True, "filter": True,
+    #  "url": "https://tanukitrader.co.za/shop/"},
+    # {"name": "Marvellous Hobbies", "platform": "woocommerce", "js": True,
+    #  "url": "https://marvelloushobbies.com/universe/sports-cards/one-piece/"},
     {"name": "Card Cache (OP17)", "platform": "shopify",
      "url": "https://cardcache.co.za/collections/op-17"},
     {"name": "Kai of Cards - singles", "platform": "shopify", "cur": "EUR ", "fx": 20,
