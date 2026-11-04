@@ -30,7 +30,7 @@ from sites import SITES
 
 def env(name, default):
     """os.getenv, but treats an empty value as unset (GitHub passes unset vars/secrets as "")."""
-    return os.getenv(name) or default
+    return (os.getenv(name) or "").strip() or default
 
 
 STATE_DIR = Path(env("STATE_DIR", "state"))
