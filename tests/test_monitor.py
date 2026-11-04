@@ -86,6 +86,12 @@ def test_diff_rules():
     assert "Zoro C OP05-002" not in tags and "Usopp C OP09-101" not in tags
 
 
+def test_diff_eur_threshold():
+    # Kai prices are EUR: a EUR 30 single (~R600) must clear the R500 threshold via fx=20
+    new = {"c": item("Luffy SP OP05-001", 30)}
+    assert m.diff({}, new, 500 / 20) and not m.diff({}, new, 500)
+
+
 def test_kai_draft():
     os.environ["ORDER_QTY"] = "2"
     subj, body = m.order_draft([("NEW", {"title": "One Piece Card Game - [EB05] - Booster Box", "price": 99,

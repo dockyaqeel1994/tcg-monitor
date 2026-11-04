@@ -1,7 +1,7 @@
 name: TCG monitor (JS-rendered stores)
 on:
   schedule:
-    - cron: "37 */3 * * *"   # every 3h: browser runs take longer
+    - cron: "37 */6 * * *"   # every 6h: browser runs take ~6 min
   workflow_dispatch:
 concurrency:
   group: tcg-state

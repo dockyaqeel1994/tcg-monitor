@@ -111,7 +111,11 @@ class Fetcher:
     def html(self, url, js=False):
         if not js:
             r = get(url)
-            return r.text if r else None
+            if r is None:
+                return None
+            if "charset" not in r.headers.get("content-type", "").lower():
+                r.encoding = r.apparent_encoding  # else requests assumes latin-1 and mangles "–"
+            return r.text
         if not self.browser:
             from playwright.sync_api import sync_playwright
             self.pw = sync_playwright().start()
@@ -288,12 +292,12 @@ def is_sealed(title):
     return bool(SEALED_RE.search(title))
 
 
-def diff(old, new):
+def diff(old, new, singles_min=SINGLES_MIN):
     alerts = []
     for k, n in new.items():
         o = old.get(k)
         sealed = is_sealed(n["title"])
-        if not sealed and max(n["price"] or 0, (o or {}).get("price") or 0) < SINGLES_MIN:
+        if not sealed and max(n["price"] or 0, (o or {}).get("price") or 0) < singles_min:
             continue
         if o is None:
             if sealed:
@@ -392,7 +396,8 @@ def main():
     sites = [s for s in SITES if (not a.site or s["name"].lower() == a.site.lower())
              and (a.group == "all" or bool(s.get("js")) == (a.group == "js"))]
     STATE_DIR.mkdir(exist_ok=True)
-    health_path = STATE_DIR / "_health.json"
+    # one health file per group so the two workflows never edit the same file (git conflicts)
+    health_path = STATE_DIR / f"_health_{a.group}.json"
     health = json.loads(health_path.read_text()) if health_path.exists() else {}
     by_site, failing, f = {}, [], Fetcher()
     try:
@@ -408,7 +413,7 @@ def main():
                 continue
             health[site["name"]] = 0
             if path.exists():
-                alerts = diff(json.loads(path.read_text()), new)
+                alerts = diff(json.loads(path.read_text()), new, SINGLES_MIN / site.get("fx", 1))
                 print(f"[{site['name']}] {len(new)} products, {len(alerts)} alert(s)")
                 if alerts:
                     by_site[site["name"]] = (site, alerts)
