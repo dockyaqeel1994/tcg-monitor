@@ -531,29 +531,44 @@ def send_discord(by_site, failing, orders):
                     + f"\n👉 **[WhatsApp Kai](<{wa}>)**\n"
                       f"Email to {KAI_EMAIL}, subject `{subject}`:\n```\n{body}\n```")
     for site, alerts in by_site.values():
-        block = ""
+        cards = []
         for tag, n in alerts:
             icon, label = describe(tag)
             rows = n.get("rows") or [(shop(site["name"]), n["price"] or 0, n["available"], n["url"], True)]
-            cheapest = next((r for r in rows if r[2]), None)  # rows are sorted: first in-stock row
-            in_stock = sum(r[2] for r in rows)
-            lines = []
-            for name, p, ok, url, me in rows:
-                price = f"≈{zar(p)}" if name.startswith("Kai") else zar(p)
-                line = (f"{'🟢' if ok else '🔴'} {name}: [{price}](<{url}>)"
-                        + (" + shipping" if name.startswith("Kai") else "") + ("" if ok else " · sold out")
-                        + (("" if len(rows) == 1 else " ✅ only shop in stock" if in_stock == 1 else " ✅ cheapest")
-                           if ok and r_is(cheapest, url) else ""))
-                lines.append(f"**{line}** 👈" if me else line)
-            card = (f"### {icon} {short_title(n['title'])}\n{label} at **{shop(site['name'])}**\n"
-                    + "\n".join(lines) + "\n\u200b\n" + "─" * 20 + "\n")  # gap + divider between products
-            if len(block) + len(card) > 1900:  # Discord's 2000-character message limit
-                msgs.append(block)
-                block = ""
-            block += card
-        if block:
-            msgs.append(block)
+            cards.append(card(icon, n["title"], rows, f"{label} at **{shop(site['name'])}**"))
+        msgs += pack(cards)
     msgs += [f"⚠️ **{name}** has failed 3 runs in a row - check the parser" for name in failing]
+    post_discord(msgs)
+
+
+def card(icon, title, rows, status=None):
+    """One product: header, optional status line, one line per shop (price links to the shop)."""
+    cheapest = next((r for r in rows if r[2]), None)  # rows are sorted: first in-stock row
+    in_stock = sum(r[2] for r in rows)
+    lines = []
+    for name, p, ok, url, me in rows:
+        price = f"≈{zar(p)}" if name.startswith("Kai") else zar(p)
+        line = (f"{'🟢' if ok else '🔴'} {name}: [{price}](<{url}>)"
+                + (" + shipping" if name.startswith("Kai") else "") + ("" if ok else " · sold out")
+                + (("" if len(rows) == 1 else " ✅ only shop in stock" if in_stock == 1 else " ✅ cheapest")
+                   if ok and r_is(cheapest, url) else ""))
+        lines.append(f"**{line}** 👈" if me else line)
+    return (f"### {icon} {short_title(title)}\n" + (f"{status}\n" if status else "")
+            + "\n".join(lines) + "\n\u200b\n" + "─" * 20 + "\n")  # gap + divider between products
+
+
+def pack(cards, limit=1900):
+    """Join cards into as few messages as fit Discord's 2000-character limit."""
+    msgs, block = [], ""
+    for c in cards:
+        if block and len(block) + len(c) > limit:
+            msgs.append(block)
+            block = ""
+        block += c
+    return msgs + ([block] if block else [])
+
+
+def post_discord(msgs):
     for content in msgs:
         r = requests.post(os.environ["DISCORD_WEBHOOK"], json={"content": content}, timeout=30)
         if r.status_code == 429:  # rate limited: wait as told, then retry once
@@ -582,6 +597,30 @@ def send_email(by_site, orders, text, html):
 
 
 # ---------- main ----------
+def stock_report():
+    """Post every English sealed product in stock across all shops (from saved state), boxes first."""
+    cat, groups = catalog(), {}
+    for site in SITES:
+        path = STATE_DIR / f"{slug(site['name'])}.json"
+        if not path.exists() or not site.get("sealed"):
+            continue
+        for t, n in sealed_only([("IN STOCK", n) for n in json.loads(path.read_text()).values()]):
+            groups.setdefault(product_key(n["title"]), []).append((site, n))
+    cards = []
+    for key, listings in sorted(groups.items(), key=lambda g: (not BOX_RE.search(g[1][0][1]["title"]), g[0])):
+        site, n = min(listings, key=lambda x: x[1]["price"] * x[0].get("fx", 1))
+        rows = [r[:4] + (False,) for r in price_rows(n, site, cat)]
+        cards.append(card("📦" if BOX_RE.search(n["title"]) else "🎁", n["title"], rows))
+    stamp = time.strftime("%d %b %H:%M UTC", time.gmtime())
+    head = (f"## 📋 Stock report · {stamp}\nEnglish sealed One Piece in stock now at your shops "
+            f"({len(cards)} products, booster boxes first). Tap a price to open the shop.\n")
+    print(head + "".join(cards))
+    if os.getenv("DISCORD_WEBHOOK"):
+        post_discord([head] + pack(cards))
+        return True
+    return False
+
+
 def group_of(site):
     """kai: priority pages on the fast 30-min workflow, js: needs a browser, http: everything else."""
     return "kai" if site.get("order") == "kai" or site.get("fast") else "js" if site.get("js") else "http"
@@ -594,7 +633,12 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="no email, don't touch state")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--test-alert", action="store_true", help="send a sample Kai order alert and exit")
+    ap.add_argument("--report", action="store_true", help="post a report of everything in stock and exit")
     a = ap.parse_args()
+    if a.report:
+        if not stock_report():
+            sys.exit("report printed only: DISCORD_WEBHOOK is not set")
+        return
     if a.test_alert:
         n = {"title": "TEST - One Piece Card Game - [OP-99] - Booster Box -Preorder-", "price": 165.25,
              "available": True, "url": "https://kaiofcards.com/collections/preorder"}

@@ -28,6 +28,8 @@ is **new**, **back in stock**, or has a **price drop**.
    Webhooks -> New Webhook -> Copy Webhook URL, and save it as the secret `DISCORD_WEBHOOK`.
    To check alerts arrive: Actions -> "TCG monitor (Kai preorders)" -> Run workflow -> tick
    "Only send a sample alert".
+   For a full list of what's in stock right now at all shops: same page, tick "Only post a stock
+   report" instead.
 3. Actions tab -> run each workflow once (baseline), then again (should say "no alerts").
 
 Schedules (private repo, fits 2000 free Actions min/month): Kai every 30 min, other stores every

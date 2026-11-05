@@ -8,6 +8,10 @@ on:
         description: "Only send a sample alert (to check Discord/email work)"
         type: boolean
         default: false
+      report:
+        description: "Only post a stock report (everything in stock now)"
+        type: boolean
+        default: false
 concurrency:
   group: tcg-kai   # separate from the other stores so it never waits behind them
   cancel-in-progress: false
@@ -23,7 +27,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python monitor.py ${{ inputs.test_alert && '--test-alert' || '--group kai' }}
+      - run: python monitor.py ${{ inputs.test_alert && '--test-alert' || inputs.report && '--report' || '--group kai' }}
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
