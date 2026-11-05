@@ -120,17 +120,15 @@ def test_price_compare():
         "ONE PIECE Official Premium Card Collection -Live Action Edition")
     assert k("One Piece TCG: Extra Booster Pack (EB-05)") != k("One Piece TCG: Extra Booster Box (EB-05)")
     cat = [("Geek Home", "g", "booster box OP17", 7360.0, True),
-           ("Kai of Cards - preorder", "k", "booster box OP17", 3305.0, True),
-           ("Knightly Gaming - sealed", "n", "booster box EB05", 4080.0, False)]
-    box = item("One Piece Booster Box (OP-17)", 6500)
-    assert m.compare(box, {}, cat) == "💸 Cheaper at Kai of Cards: R3,305 + shipping (save R3,195)"
-    assert m.compare(item("OP-17 Booster Box", 3000), {}, cat) == (
-        "✅ Cheapest in stock. Kai of Cards has it for R3,305 + shipping (R305 more before shipping)")
-    assert m.compare(item("OP-17 Booster Box", 6499), {}, [("Geek Home", "g", "booster box OP17", 7360.0, True)]) == (
-        "✅ Cheapest in stock. Geek Home has it for R7,360 (R861 more)")
-    assert m.compare(item("Double Pack Set (DP-13)", 450), {}, cat) == ""
-    assert m.compare(item("Extra Booster Box (EB-05)", 6500), {}, cat) == (
-        "⚠️ No other shop has it in stock (was R4,080 at Knightly Gaming, sold out)")
+           ("Kai of Cards - preorder", "k", "booster box OP17", 3305.0, False),
+           ("Knightly Gaming - sealed", "n", "booster box EB05", 4080.0, False),
+           ("Armchair Generals", "a", "booster box EB05", 6500.0, True)]
+    site = {"name": "Big Bang Shop"}
+    assert m.price_list(item("OP-17 Booster Box", 6499), site, cat) == (
+        ["Geek Home: R7,360", "Kai of Cards: sold out (≈R3,305 + shipping)"], True)
+    assert m.price_list(item("Extra Booster Box (EB-05)", 6999), site, cat) == (
+        ["Armchair Generals: R6,500 ✅ cheapest", "Knightly Gaming: sold out (R4,080)"], False)
+    assert m.price_list(item("Double Pack Set (DP-13)", 450), site, cat) == ([], False)
 
 
 def test_alert_wording():

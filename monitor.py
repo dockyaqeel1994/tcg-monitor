@@ -366,26 +366,24 @@ def catalog():
     return out
 
 
-def compare(n, site, cat):
-    """One-line, plain-English price comparison against the same product at the other stores."""
+def price_list(n, site, cat):
+    """Prices for the same product at the other shops: in stock (cheapest first), then sold out.
+    Returns (lines, whether this listing is the cheapest in stock)."""
     if not n["price"]:
-        return ""
+        return [], False
     key, mine = product_key(n["title"]), n["price"] * site.get("fx", 1)
-    same = [(p, s, avail) for s, url, k, p, avail in cat if k == key and url != n["url"]]
-    others = sorted((p, s) for p, s, avail in same if avail)
-    ship = lambda s: " + shipping" if s.startswith("Kai") else ""
-    if others:
-        p, s = others[0]
-        if mine <= p:
-            more = f"{zar(p - mine)} more" + (" before shipping" if ship(s) else "")
-            return f"✅ Cheapest in stock. {shop(s)} has it for {zar(p)}{ship(s)} ({more})"
-        return f"💸 Cheaper at {shop(s)}: {zar(p)}{ship(s)} (save {zar(mine - p)})"
-    sold = sorted((p, s) for p, s, avail in same if not avail)
-    if not sold:
-        return ""
-    p, s = sold[0]
-    icon = "⚠️" if mine > p * 1.25 else "ℹ️"
-    return f"{icon} No other shop has it in stock (was {zar(p)}{ship(s)} at {shop(s)}, sold out)"
+    seen, avail, sold = {shop(site["name"])}, [], []
+    for p, s, ok in sorted(((p, s, ok) for s, url, k, p, ok in cat if k == key and url != n["url"]),
+                           key=lambda x: (not x[2], x[0])):
+        if shop(s) not in seen:  # one line per shop: its cheapest in-stock listing, else sold-out one
+            seen.add(shop(s))
+            (avail if ok else sold).append((p, s))
+    fmt = lambda p, s: f"≈{zar(p)} + shipping" if s.startswith("Kai") else zar(p)
+    best = not avail or mine <= avail[0][0]
+    lines = [f"{shop(s)}: {fmt(p, s)}" + (" ✅ cheapest" if not best and i == 0 else "")
+             for i, (p, s) in enumerate(avail[:4])]
+    lines += [f"{shop(s)}: sold out ({fmt(p, s)})" for p, s in sold[:3]]
+    return lines, best and bool(avail)
 
 
 def zar(p):
@@ -539,9 +537,10 @@ def send_discord(by_site, failing, orders):
         for tag, n in alerts:
             icon, label = describe(tag)
             price = "?" if n["price"] is None else zar(n["price"]) if cur == "R" else f"{cur}{n['price']:g}"
-            line = (f"\n{icon} **{short_title(n['title'])}**\n**{price} at {shop(site['name'])}** · {label} · "
+            line = (f"\n{icon} **{short_title(n['title'])}** · {label}\n"
+                    f"👉 **{shop(site['name'])}: {price}**{' ✅ cheapest' if n.get('best') else ''} · "
                     f"[View](<{n['url']}>)\n"
-                    + (f"{n['cmp']}\n" if n.get("cmp") else ""))
+                    + "".join(f"• {o}\n" for o in n.get("others", [])))
             if len(block) + len(line) > 1900:  # Discord's 2000-character message limit
                 msgs.append(block)
                 block = head + " (cont.)\n"
@@ -647,8 +646,11 @@ def main():
     if by_site:
         cat = catalog()
         for site, alerts in by_site.values():
-            alerts[:] = [(t, {**n, "cmp": compare(n, site, cat)}) if site.get("sealed") else (t, n)
-                         for t, n in alerts]
+            for i, (t, n) in enumerate(alerts):
+                if site.get("sealed"):
+                    others, best = price_list(n, site, cat)
+                    alerts[i] = (t, {**n, "others": others, "best": best,
+                                     "cmp": "other shops: " + "; ".join(others) if others else ""})
     if by_site or failing or orders:
         if a.dry_run:
             os.environ.pop("SMTP_HOST", None)
