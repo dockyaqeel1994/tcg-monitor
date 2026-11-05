@@ -366,24 +366,24 @@ def catalog():
     return out
 
 
-def price_list(n, site, cat):
-    """Prices for the same product at the other shops: in stock (cheapest first), then sold out.
-    Returns (lines, whether this listing is the cheapest in stock)."""
+def price_rows(n, site, cat):
+    """This listing plus the same product at the other shops, one row per shop:
+    in stock (cheapest first), then sold out. Each row: (shop, ZAR price, in stock, url, is this listing)."""
     if not n["price"]:
-        return [], False
-    key, mine = product_key(n["title"]), n["price"] * site.get("fx", 1)
-    seen, avail, sold = {shop(site["name"])}, [], []
-    for p, s, ok in sorted(((p, s, ok) for s, url, k, p, ok in cat if k == key and url != n["url"]),
-                           key=lambda x: (not x[2], x[0])):
-        if shop(s) not in seen:  # one line per shop: its cheapest in-stock listing, else sold-out one
-            seen.add(shop(s))
-            (avail if ok else sold).append((p, s))
-    fmt = lambda p, s: f"≈{zar(p)} + shipping" if s.startswith("Kai") else zar(p)
-    best = not avail or mine <= avail[0][0]
-    lines = [f"{shop(s)}: {fmt(p, s)}" + (" ✅ cheapest" if not best and i == 0 else "")
-             for i, (p, s) in enumerate(avail[:4])]
-    lines += [f"{shop(s)}: sold out ({fmt(p, s)})" for p, s in sold[:3]]
-    return lines, best and bool(avail)
+        return []
+    key = product_key(n["title"])
+    rows = [(shop(site["name"]), n["price"] * site.get("fx", 1), n["available"], n["url"], True)]
+    rows += [(shop(s), p, ok, url, False) for s, url, k, p, ok in cat if k == key and url != n["url"]]
+    seen, out = set(), []
+    for r in sorted(rows, key=lambda r: (not r[2], r[1])):
+        if r[0] not in seen:  # one row per shop: its cheapest in-stock listing, else its sold-out one
+            seen.add(r[0])
+            out.append(r)
+    return out[:7]
+
+
+def r_is(row, url):
+    return row is not None and row[3] == url
 
 
 def zar(p):
@@ -531,21 +531,28 @@ def send_discord(by_site, failing, orders):
                     + f"\n👉 **[WhatsApp Kai](<{wa}>)**\n"
                       f"Email to {KAI_EMAIL}, subject `{subject}`:\n```\n{body}\n```")
     for site, alerts in by_site.values():
-        cur = site.get("cur", "R")
-        head = f"**🏪 {shop(site['name'])}**"
-        block = head + "\n"
+        block = ""
         for tag, n in alerts:
             icon, label = describe(tag)
-            price = "?" if n["price"] is None else zar(n["price"]) if cur == "R" else f"{cur}{n['price']:g}"
-            line = (f"\n{icon} **{short_title(n['title'])}** · {label}\n"
-                    f"👉 **{shop(site['name'])}: {price}**{' ✅ cheapest' if n.get('best') else ''} · "
-                    f"[View](<{n['url']}>)\n"
-                    + "".join(f"• {o}\n" for o in n.get("others", [])))
-            if len(block) + len(line) > 1900:  # Discord's 2000-character message limit
+            rows = n.get("rows") or [(shop(site["name"]), n["price"] or 0, n["available"], n["url"], True)]
+            cheapest = next((r for r in rows if r[2]), None)  # rows are sorted: first in-stock row
+            in_stock = sum(r[2] for r in rows)
+            lines = []
+            for name, p, ok, url, me in rows:
+                price = f"≈{zar(p)}" if name.startswith("Kai") else zar(p)
+                line = (f"{'🟢' if ok else '🔴'} {name}: [{price}](<{url}>)"
+                        + (" + shipping" if name.startswith("Kai") else "") + ("" if ok else " · sold out")
+                        + (("" if len(rows) == 1 else " ✅ only shop in stock" if in_stock == 1 else " ✅ cheapest")
+                           if ok and r_is(cheapest, url) else ""))
+                lines.append(f"**{line}** 👈" if me else line)
+            card = (f"### {icon} {short_title(n['title'])}\n{label} at **{shop(site['name'])}**\n"
+                    + "\n".join(lines) + "\n\u200b\n")  # zero-width line = gap between products
+            if len(block) + len(card) > 1900:  # Discord's 2000-character message limit
                 msgs.append(block)
-                block = head + " (cont.)\n"
-            block += line
-        msgs.append(block)
+                block = ""
+            block += card
+        if block:
+            msgs.append(block)
     msgs += [f"⚠️ **{name}** has failed 3 runs in a row - check the parser" for name in failing]
     for content in msgs:
         r = requests.post(os.environ["DISCORD_WEBHOOK"], json={"content": content}, timeout=30)
@@ -648,9 +655,9 @@ def main():
         for site, alerts in by_site.values():
             for i, (t, n) in enumerate(alerts):
                 if site.get("sealed"):
-                    others, best = price_list(n, site, cat)
-                    alerts[i] = (t, {**n, "others": others, "best": best,
-                                     "cmp": "other shops: " + "; ".join(others) if others else ""})
+                    rows = price_rows(n, site, cat)
+                    others = [f"{s} R{p:,.0f}" + ("" if ok else " (sold out)") for s, p, ok, _, me in rows if not me]
+                    alerts[i] = (t, {**n, "rows": rows, "cmp": "other shops: " + "; ".join(others) if others else ""})
     if by_site or failing or orders:
         if a.dry_run:
             os.environ.pop("SMTP_HOST", None)

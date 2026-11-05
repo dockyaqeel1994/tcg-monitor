@@ -124,11 +124,13 @@ def test_price_compare():
            ("Knightly Gaming - sealed", "n", "booster box EB05", 4080.0, False),
            ("Armchair Generals", "a", "booster box EB05", 6500.0, True)]
     site = {"name": "Big Bang Shop"}
-    assert m.price_list(item("OP-17 Booster Box", 6499), site, cat) == (
-        ["Geek Home: R7,360", "Kai of Cards: sold out (≈R3,305 + shipping)"], True)
-    assert m.price_list(item("Extra Booster Box (EB-05)", 6999), site, cat) == (
-        ["Armchair Generals: R6,500 ✅ cheapest", "Knightly Gaming: sold out (R4,080)"], False)
-    assert m.price_list(item("Double Pack Set (DP-13)", 450), site, cat) == ([], False)
+    rows = m.price_rows(item("OP-17 Booster Box", 6499), site, cat)
+    assert [(r[0], r[1], r[2], r[4]) for r in rows] == [
+        ("Big Bang Shop", 6499, True, True), ("Geek Home", 7360.0, True, False),
+        ("Kai of Cards", 3305.0, False, False)]
+    rows = m.price_rows(item("Extra Booster Box (EB-05)", 6999), site, cat)
+    assert [r[0] for r in rows] == ["Armchair Generals", "Big Bang Shop", "Knightly Gaming"]
+    assert m.price_rows(item("Double Pack Set (DP-13)", 450), site, cat)[0][0] == "Big Bang Shop"
 
 
 def test_alert_wording():
@@ -194,6 +196,7 @@ def test_discord_messages():
         m.requests.post, m.time.sleep = real_post, real_sleep
         del os.environ["DISCORD_WEBHOOK"]
     assert "ORDER NOW: Kai EB05" in sent[0] and "wa.me/" in sent[0] and "1 x EB05 Case" in sent[0]
+    assert "### 🎁" in sent[1] and "[EUR 165.25]" not in sent[1]
     assert all(len(c) <= 2000 for c in sent)
 
 
