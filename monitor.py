@@ -546,7 +546,7 @@ def send_discord(by_site, failing, orders):
                            if ok and r_is(cheapest, url) else ""))
                 lines.append(f"**{line}** 👈" if me else line)
             card = (f"### {icon} {short_title(n['title'])}\n{label} at **{shop(site['name'])}**\n"
-                    + "\n".join(lines) + "\n\u200b\n")  # zero-width line = gap between products
+                    + "\n".join(lines) + "\n\u200b\n" + "─" * 20 + "\n")  # gap + divider between products
             if len(block) + len(card) > 1900:  # Discord's 2000-character message limit
                 msgs.append(block)
                 block = ""
