@@ -125,7 +125,9 @@ def test_price_compare():
     box = item("One Piece Booster Box (OP-17)", 6500)
     assert m.compare(box, {}, cat) == "💸 Cheaper at Kai of Cards: R3,305 + shipping (save R3,195)"
     assert m.compare(item("OP-17 Booster Box", 3000), {}, cat) == (
-        "✅ Best price right now (next cheapest: R3,305 + shipping at Kai of Cards)")
+        "✅ Cheapest in stock. Kai of Cards has it for R3,305 + shipping (R305 more before shipping)")
+    assert m.compare(item("OP-17 Booster Box", 6499), {}, [("Geek Home", "g", "booster box OP17", 7360.0, True)]) == (
+        "✅ Cheapest in stock. Geek Home has it for R7,360 (R861 more)")
     assert m.compare(item("Double Pack Set (DP-13)", 450), {}, cat) == ""
     assert m.compare(item("Extra Booster Box (EB-05)", 6500), {}, cat) == (
         "⚠️ No other shop has it in stock (was R4,080 at Knightly Gaming, sold out)")

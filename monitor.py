@@ -377,7 +377,8 @@ def compare(n, site, cat):
     if others:
         p, s = others[0]
         if mine <= p:
-            return f"✅ Best price right now (next cheapest: {zar(p)}{ship(s)} at {shop(s)})"
+            more = f"{zar(p - mine)} more" + (" before shipping" if ship(s) else "")
+            return f"✅ Cheapest in stock. {shop(s)} has it for {zar(p)}{ship(s)} ({more})"
         return f"💸 Cheaper at {shop(s)}: {zar(p)}{ship(s)} (save {zar(mine - p)})"
     sold = sorted((p, s) for p, s, avail in same if not avail)
     if not sold:
@@ -538,7 +539,8 @@ def send_discord(by_site, failing, orders):
         for tag, n in alerts:
             icon, label = describe(tag)
             price = "?" if n["price"] is None else zar(n["price"]) if cur == "R" else f"{cur}{n['price']:g}"
-            line = (f"\n{icon} **{short_title(n['title'])}**\n**{price}** · {label} · [View](<{n['url']}>)\n"
+            line = (f"\n{icon} **{short_title(n['title'])}**\n**{price} at {shop(site['name'])}** · {label} · "
+                    f"[View](<{n['url']}>)\n"
                     + (f"{n['cmp']}\n" if n.get("cmp") else ""))
             if len(block) + len(line) > 1900:  # Discord's 2000-character message limit
                 msgs.append(block)
