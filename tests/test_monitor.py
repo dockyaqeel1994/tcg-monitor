@@ -123,11 +123,26 @@ def test_price_compare():
            ("Kai of Cards - preorder", "k", "booster box OP17", 3305.0, True),
            ("Knightly Gaming - sealed", "n", "booster box EB05", 4080.0, False)]
     box = item("One Piece Booster Box (OP-17)", 6500)
-    assert m.compare(box, {}, cat) == "⚠️ cheaper at Kai of Cards - preorder: R3,305 + shipping (49% less)"
-    assert m.compare(item("OP-17 Booster Box", 3000), {}, cat).startswith("✅ cheapest of 3 stores")
-    assert m.compare(item("Double Pack Set (DP-13)", 450), {}, cat) == "no other tracked store lists this"
+    assert m.compare(box, {}, cat) == "💸 Cheaper at Kai of Cards: R3,305 + shipping (save R3,195)"
+    assert m.compare(item("OP-17 Booster Box", 3000), {}, cat) == (
+        "✅ Best price right now (next cheapest: R3,305 + shipping at Kai of Cards)")
+    assert m.compare(item("Double Pack Set (DP-13)", 450), {}, cat) == ""
     assert m.compare(item("Extra Booster Box (EB-05)", 6500), {}, cat) == (
-        "⚠️ only store in stock; sold out elsewhere at R4,080 (Knightly Gaming - sealed)")
+        "⚠️ No other shop has it in stock (was R4,080 at Knightly Gaming, sold out)")
+
+
+def test_alert_wording():
+    assert m.short_title("[Pre-Order] One Piece OP-18 The Dominance of God - Booster Box [Pre-Order]") == (
+        "One Piece OP-18 The Dominance of God - Booster Box")
+    assert m.short_title("One Piece: The Dominance of God (OP-18) - Booster Box") == (
+        "The Dominance of God (OP-18) - Booster Box")
+    assert m.short_title("One Piece Card Game: Premium Card Collection - Live Action") == (
+        "Premium Card Collection - Live Action")
+    assert m.describe("BOOSTER BOX NEW") == ("📦", "🆕 New in stock")
+    assert m.describe("BOOSTER BOX PREORDER NEW") == ("📦", "🆕 New preorder")
+    assert m.describe("BACK IN STOCK") == ("🎁", "🔄 Back in stock")
+    assert m.describe("PRICE DROP 6999 -> 5999") == ("🎁", "📉 Price drop (was R6,999)")
+    assert m.describe("BOOSTER BOX IN STOCK") == ("📦", "In stock")
 
 
 def test_kai_draft():

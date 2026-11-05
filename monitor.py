@@ -367,25 +367,57 @@ def catalog():
 
 
 def compare(n, site, cat):
-    """One-line price comparison of an alert against the same product at the other stores."""
+    """One-line, plain-English price comparison against the same product at the other stores."""
     if not n["price"]:
         return ""
     key, mine = product_key(n["title"]), n["price"] * site.get("fx", 1)
     same = [(p, s, avail) for s, url, k, p, avail in cat if k == key and url != n["url"]]
     others = sorted((p, s) for p, s, avail in same if avail)
-    if not others:
-        sold = sorted((p, s) for p, s, avail in same if not avail)
-        if not sold:
-            return "no other tracked store lists this"
-        p, s = sold[0]
-        extra = " + shipping" if s.startswith("Kai") else ""
-        flag = "⚠️ " if mine > p * 1.25 else ""
-        return f"{flag}only store in stock; sold out elsewhere at R{p:,.0f}{extra} ({s})"
-    p, s = others[0]
-    extra = " + shipping" if s.startswith("Kai") else ""
-    if mine <= p:
-        return f"✅ cheapest of {len(others) + 1} stores (next: R{p:,.0f}{extra} at {s})"
-    return f"⚠️ cheaper at {s}: R{p:,.0f}{extra} ({(mine - p) / mine:.0%} less)"
+    ship = lambda s: " + shipping" if s.startswith("Kai") else ""
+    if others:
+        p, s = others[0]
+        if mine <= p:
+            return f"✅ Best price right now (next cheapest: {zar(p)}{ship(s)} at {shop(s)})"
+        return f"💸 Cheaper at {shop(s)}: {zar(p)}{ship(s)} (save {zar(mine - p)})"
+    sold = sorted((p, s) for p, s, avail in same if not avail)
+    if not sold:
+        return ""
+    p, s = sold[0]
+    icon = "⚠️" if mine > p * 1.25 else "ℹ️"
+    return f"{icon} No other shop has it in stock (was {zar(p)}{ship(s)} at {shop(s)}, sold out)"
+
+
+def zar(p):
+    return f"R{p:,.0f}" if p >= 100 or p == int(p) else f"R{p:,.2f}"  # R4,079.99 -> R4,080
+
+
+def shop(name):
+    """'Knightly Gaming - sealed' -> 'Knightly Gaming', 'Card Cache (OP17)' -> 'Card Cache'."""
+    return re.sub(r"\s*(?: - .*|\(.*\))$", "", name)
+
+
+PREORDER_TAG_RE = re.compile(r"\s*(?:\[\s*pre-?order\s*\]|-\s*pre-?order\s*-|[–-]\s*pre-?order\s*$)\s*", re.I)
+BRAND_PREFIX_RE = re.compile(r"^(?:one piece(?: card game| tcg)?\s*[:|–-]\s*)+", re.I)
+
+
+def short_title(title):
+    """Drop '[Pre-Order]' tags (preorders are labelled anyway) and a leading 'One Piece Card Game:'."""
+    t = PREORDER_TAG_RE.sub(" ", title).strip(" -–|")
+    return BRAND_PREFIX_RE.sub("", t).strip(" -–|") or title
+
+
+def describe(tag):
+    """Internal alert tag -> (icon, plain label)."""
+    icon = "📦" if tag.startswith("BOOSTER BOX") else "🎁"
+    base = tag.replace("BOOSTER BOX ", "").replace("PREORDER ", "")
+    m = re.match(r"PRICE DROP ([\d.]+) -> ([\d.]+)", base)
+    label = (f"📉 Price drop (was {zar(float(m.group(1)))})" if m else
+             {"NEW": "🆕 New", "BACK IN STOCK": "🔄 Back in stock", "IN STOCK": "In stock"}.get(base, base.title()))
+    if "PREORDER" in tag:
+        label += " preorder" if base in ("NEW", "IN STOCK") else " (preorder)"
+    elif base in ("NEW", "IN STOCK"):
+        label += " in stock" if base == "NEW" else ""
+    return icon, label
 
 
 # ---------- Kai order draft ----------
@@ -495,19 +527,22 @@ def send_discord(by_site, failing, orders):
         subject, body = order_draft(code, items)
         wa = f"https://wa.me/{KAI_WHATSAPP}?text={quote(body)}"
         msgs.append(f"🟢 **ORDER NOW: Kai {code} booster box available**\n"
-                    + "".join(f"[{n['title']}](<{n['url']}>) · EUR {n['price']:g}\n" for n in items)
+                    + "".join(f"{short_title(n['title'])} · **€{n['price']:g}** · [View](<{n['url']}>)\n"
+                              for n in items)
                     + f"\n👉 **[WhatsApp Kai](<{wa}>)**\n"
                       f"Email to {KAI_EMAIL}, subject `{subject}`:\n```\n{body}\n```")
     for site, alerts in by_site.values():
         cur = site.get("cur", "R")
-        block = f"**{site['name']}**\n"
+        head = f"**🏪 {shop(site['name'])}**"
+        block = head + "\n"
         for tag, n in alerts:
-            price = f"{cur}{n['price']:g}" if n["price"] is not None else "?"
-            cmp = f"\n  ↳ {n['cmp']}" if n.get("cmp") else ""
-            line = f"`{tag}` [{n['title']}](<{n['url']}>) · {price}{cmp}\n"
+            icon, label = describe(tag)
+            price = "?" if n["price"] is None else zar(n["price"]) if cur == "R" else f"{cur}{n['price']:g}"
+            line = (f"\n{icon} **{short_title(n['title'])}**\n**{price}** · {label} · [View](<{n['url']}>)\n"
+                    + (f"{n['cmp']}\n" if n.get("cmp") else ""))
             if len(block) + len(line) > 1900:  # Discord's 2000-character message limit
                 msgs.append(block)
-                block = f"**{site['name']}** (cont.)\n"
+                block = head + " (cont.)\n"
             block += line
         msgs.append(block)
     msgs += [f"⚠️ **{name}** has failed 3 runs in a row - check the parser" for name in failing]
