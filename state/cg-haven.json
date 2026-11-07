@@ -1,4 +1,10 @@
 {
+ "https://cghaven.co.za/product/monkey-d-luffy-p-041-one-piece-emotion-exhibition-promo-jp-sealed": {
+  "title": "Monkey D. Luffy P-041 \u2013 ONE PIECE EMOTION Exhibition Promo (JP) \u2013 Sealed",
+  "price": 499.0,
+  "available": true,
+  "url": "https://cghaven.co.za/product/monkey-d-luffy-p-041-one-piece-emotion-exhibition-promo-jp-sealed"
+ },
  "https://cghaven.co.za/product/one-piece-eb-05-heroines-edition-vol-2-japanese-booster-box": {
   "title": "ONE PIECE Card Game \u2013 EB-05 Heroines Edition Vol. 2 Booster Box (Japanese) \u2013 Pre-Order",
   "price": 3200.0,
@@ -124,5 +130,11 @@
   "price": 1699.0,
   "available": true,
   "url": "https://cghaven.co.za/product/one-piece-card-game-v-jump-2026-monster-trio-promo-card-set-luffy-zoro-sanji-pre-order"
+ },
+ "https://cghaven.co.za/product/one-piece-saikyo-jump-limited-summit-war-power-pack": {
+  "title": "One Piece Saikyo Jump Limited Summit War Power Pack",
+  "price": 650.0,
+  "available": true,
+  "url": "https://cghaven.co.za/product/one-piece-saikyo-jump-limited-summit-war-power-pack"
  }
 }
