@@ -32,7 +32,7 @@
  "one-piece-card-game-booster-box-op-18": {
   "title": "One Piece Card Game: Booster Box (OP-18)",
   "price": 4500.0,
-  "available": false,
+  "available": true,
   "url": "https://armchairgenerals.co.za/products/one-piece-card-game-booster-box-op-18"
  },
  "one-piece-card-game-double-pack-set-13-dp-13": {
@@ -94,6 +94,12 @@
   "price": 6500.0,
   "available": true,
   "url": "https://armchairgenerals.co.za/products/one-piece-tcg-extra-booster-pack-eb-05"
+ },
+ "one-piece-tcg-extra-booster-box-eb-06": {
+  "title": "One Piece TCG: Extra Booster Box (EB-06)",
+  "price": 6000.0,
+  "available": true,
+  "url": "https://armchairgenerals.co.za/products/one-piece-tcg-extra-booster-box-eb-06"
  },
  "one-piece-tcg-set-sail-deck-set": {
   "title": "One Piece TCG: Set Sail Deck Set",
