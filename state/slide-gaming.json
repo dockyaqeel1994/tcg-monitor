@@ -1,4 +1,16 @@
 {
+ "https://www.slidegaming.co.za/product/one-piece-card-game-the-dominance-of-god-op-18-booster-pack/": {
+  "title": "One Piece Card Game \u2013 The Dominance of God [OP-18] \u2013 Booster Pack",
+  "price": 200.0,
+  "available": true,
+  "url": "https://www.slidegaming.co.za/product/one-piece-card-game-the-dominance-of-god-op-18-booster-pack/"
+ },
+ "https://www.slidegaming.co.za/product/one-piece-card-game-the-dominance-of-god-op-18-booster-box/": {
+  "title": "One Piece Card Game \u2013 The Dominance of God [OP-18] \u2013 Booster Box",
+  "price": 4750.0,
+  "available": true,
+  "url": "https://www.slidegaming.co.za/product/one-piece-card-game-the-dominance-of-god-op-18-booster-box/"
+ },
  "https://www.slidegaming.co.za/product/one-piece-tcg-extra-booster-pack-eb-05/": {
   "title": "One Piece TCG: Extra Booster Pack (EB-05) \u2013 December Restock",
   "price": 235.0,
@@ -7,7 +19,7 @@
  },
  "https://www.slidegaming.co.za/product/one-piece-tcg-extra-booster-box-eb-05/": {
   "title": "One Piece TCG: Extra Booster Box (EB-05) \u2013 December Restock",
-  "price": 5575.0,
+  "price": 5475.0,
   "available": true,
   "url": "https://www.slidegaming.co.za/product/one-piece-tcg-extra-booster-box-eb-05/"
  },
