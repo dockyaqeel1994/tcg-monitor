@@ -58,7 +58,7 @@ SITES = [
     {"name": "Geek Home", "platform": "woocommerce",
      "url": "https://www.geekhome.co.za/product-category/opcg/"},
     {"name": "Mirage Gaming", "platform": "html", "js": True, "filter": True, "link_re": r"/product",
-     "url": "https://www.miragegaming.co.za/shop"},
+     "url": "https://www.miragegaming.co.za/shop?category=sealed-product"},  # /shop is now 40k+ items
     {"name": "Maximus Games", "platform": "shopify",
      "url": "https://maximusgames.co.za/collections/one-piece-tcg"},
     {"name": "Slide Gaming", "platform": "woocommerce",
