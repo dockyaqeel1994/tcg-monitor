@@ -280,25 +280,49 @@ def paged(site, f, parse):
     return out
 
 
-# Premium Bandai: the public listing page shows "Upcoming Items (N)" / "Available Items (N)" counts
-PB_COUNT_RE = re.compile(r"(?<!Longer )\b(Upcoming|Available) Items \((\d+)\)", re.I)  # not "No Longer Available"
+# Premium Bandai: each product card on the public listing page shows name, price and a status badge
+PB_PRICE_RE = re.compile(r"((?:NZ|US|AU|A|HK|SG|S|NT)?\$)\s*([\d,]+(?:\.\d+)?)")
+PB_STATUS_RE = re.compile(r"PRE-ORDER CLOSED|PRE-ORDER|IN STOCK|SOLD OUT|OUT OF STOCK|COMING SOON|END OF SALE", re.I)
+PB_ITEM_RE = re.compile(r"/item/")
 
 
-def pb_counts(text):
-    return {k.lower(): int(n) for k, n in PB_COUNT_RE.findall(text)}
+def parse_pbandai(html, base):
+    soup, out = BeautifulSoup(html, "lxml"), {}
+    for a in soup.find_all("a", href=PB_ITEM_RE):
+        url = urljoin(base, a["href"]).split("?")[0]
+        if url in out:
+            continue
+        card = a  # climb to the largest ancestor that still holds only this one product
+        for _ in range(6):
+            parent = card.parent
+            if parent is None or len({urljoin(base, x["href"]).split("?")[0]
+                                      for x in parent.find_all("a", href=PB_ITEM_RE)}) > 1:
+                break
+            card = parent
+        txt = re.sub(r"\s+", " ", card.get_text(" ", strip=True).replace("\u200c", ""))
+        price, status = PB_PRICE_RE.search(txt), PB_STATUS_RE.search(txt)
+        title = (txt[:price.start()] if price else a.get_text(" ", strip=True)).strip()
+        if not title:
+            continue
+        status = status.group(0).upper() if status else ""
+        out[url] = {"title": title, "price": float(price.group(2).replace(",", "")) if price else None,
+                    "cur": price.group(1) if price else "", "status": status,
+                    "available": status in ("PRE-ORDER", "IN STOCK"), "preorder": status == "PRE-ORDER", "url": url}
+    return out
 
 
 def pbandai(site, f):
-    counts = pb_counts(BeautifulSoup(f.html(site["url"], js=True, wait=12000), "lxml").get_text(" ", strip=True))
-    if not counts:
-        raise RuntimeError("item counts not found (page layout changed?)")
-    return {k: {"title": f"{k} items", "price": None, "count": counts.get(k, 0),
-                "available": counts.get(k, 0) > 0, "url": site["url"]} for k in ("available", "upcoming")}
+    items = {k: n for k, n in parse_pbandai(f.html(site["url"], js=True, wait=12000), site["url"]).items()
+             if OP_RE.search(n["title"])}  # drops recommendation carousels for other series
+    if not items:
+        raise RuntimeError("no One Piece items found (page layout changed?)")
+    return items
 
 
 def pbandai_alerts(old, new):
-    """Alert when a region's count of available or upcoming items goes up."""
-    return [(k, n) for k, n in new.items() if n["count"] > old.get(k, {}).get("count", 0)]
+    """An English One Piece item that can now be pre-ordered or bought, and couldn't at the last check."""
+    return [("PREORDER" if n["preorder"] else "IN STOCK", n) for k, n in new.items()
+            if n["available"] and not NON_ENGLISH_RE.search(n["title"]) and not old.get(k, {}).get("available")]
 
 
 ADAPTERS = {
@@ -556,10 +580,10 @@ def send_discord(by_site, failing, orders):
         cards = []
         for tag, n in alerts:
             if site.get("platform") == "pbandai":
-                what = "now available to order" if tag == "available" else "coming soon (upcoming)"
-                cards.append(f"### {site.get('flag', '')} {site['name']}\n🆕 **{n['count']} One Piece Card Game "
-                             f"item{'s' if n['count'] != 1 else ''} {what}** · [Open store](<{n['url']}>)\n"
-                             "\u200b\n" + "─" * 20 + "\n")
+                what = "🆕 Pre-order open" if tag == "PREORDER" else "🟢 In stock"
+                price = f"{n['cur']}{n['price']:,.2f}" if n["price"] is not None else "price on page"
+                cards.append(f"### {site.get('flag', '')} {n['title']}\n**{what}** at **{site['name']}** · "
+                             f"[{price}](<{n['url']}>)\n\u200b\n" + "─" * 20 + "\n")
                 continue
             icon, label = describe(tag)
             rows = n.get("rows") or [(shop(site["name"]), n["price"] or 0, n["available"], n["url"], True)]

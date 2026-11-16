@@ -147,12 +147,26 @@ def test_alert_wording():
     assert m.describe("BOOSTER BOX IN STOCK") == ("📦", "In stock")
 
 
+PB = """<div class="grid">
+<div class="card"><a href="/nz/item/N1"><img alt="x"></a><a href="/nz/item/N1">ONE PIECE CARD GAME Premium Card
+Collection -Ace &amp; Sabo &amp; Luffy-</a><p>NZ$\u200c59.00 (INCL. GST)</p><span>PRE-ORDER</span></div>
+<div class="card"><a href="/nz/item/N2">ONE PIECE CARD GAME Japanese 4th Anniversary Set</a><p>NZ$325.00</p>
+<span>PRE-ORDER</span></div>
+<div class="card"><a href="/nz/item/N3">ONE PIECE CARD GAME Special Goods Set</a><p>NZ$80.00</p>
+<span>PRE-ORDER CLOSED</span></div>
+<div class="card"><a href="/nz/item/G1">S.H.Figuarts SON GOKU</a><p>NZ$99.00</p><span>IN STOCK</span></div></div>"""
+
+
 def test_pbandai():
-    text = "SALES STATUS Upcoming Items (0) Available Items (2) No Longer Available Items (28)"
-    assert m.pb_counts(text) == {"upcoming": 0, "available": 2}
-    old = {"available": {"count": 0}, "upcoming": {"count": 1}}
-    new = {"available": {"count": 2}, "upcoming": {"count": 1}}
-    assert [k for k, _ in m.pbandai_alerts(old, new)] == ["available"]
+    items = m.parse_pbandai(PB, "https://p-bandai.com/nz/series/onepiece-series")
+    a = items["https://p-bandai.com/nz/item/N1"]
+    assert a["title"] == "ONE PIECE CARD GAME Premium Card Collection -Ace & Sabo & Luffy-"
+    assert a["price"] == 59.0 and a["cur"] == "NZ$" and a["preorder"] and a["available"]
+    assert not items["https://p-bandai.com/nz/item/N3"]["available"]      # PRE-ORDER CLOSED
+    tags = {n["title"][:40]: t for t, n in m.pbandai_alerts({}, items)}
+    assert tags == {"ONE PIECE CARD GAME Premium Card Collect": "PREORDER",   # Japanese set skipped
+                    "S.H.Figuarts SON GOKU": "IN STOCK"}                      # (pbandai() drops non-One Piece)
+    assert m.pbandai_alerts(items, items) == []                                # nothing changed
 
 
 def test_kai_draft():
