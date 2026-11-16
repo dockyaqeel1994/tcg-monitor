@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: "37 4 * * *"   # daily: browser runs take ~6 min of the private-repo budget
   workflow_dispatch:
+    inputs:
+      test_pbandai:
+        description: "Only post a test: live Premium Bandai USA One Piece items incl. figures"
+        type: boolean
+        default: false
 concurrency:
   group: tcg-state
   cancel-in-progress: false
@@ -19,7 +24,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements-js.txt
       - run: playwright install --with-deps chromium
-      - run: python monitor.py --group js
+      - run: python monitor.py ${{ inputs.test_pbandai && '--test-pbandai' || '--group js' }}
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}

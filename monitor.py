@@ -686,7 +686,23 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--test-alert", action="store_true", help="send a sample Kai order alert and exit")
     ap.add_argument("--report", action="store_true", help="post a report of everything in stock and exit")
+    ap.add_argument("--test-pbandai", action="store_true",
+                    help="post live Premium Bandai USA One Piece items (incl. figures) as a test, save nothing")
     a = ap.parse_args()
+    if a.test_pbandai:
+        site = {"name": "Premium Bandai USA (TEST, incl. figures)", "platform": "pbandai", "flag": "🇺🇸",
+                "url": "https://p-bandai.com/us/series/onepiece-series"}
+        f = Fetcher()
+        try:
+            items = pbandai(site, f)
+        finally:
+            f.close()
+        alerts = sorted(pbandai_alerts({}, items), key=lambda x: x[0] != "PREORDER")[:5]  # preorders first
+        if not alerts:
+            sys.exit(f"read {len(items)} items, but none is open for pre-order or in stock right now")
+        if not notify({site["name"]: (site, alerts)}, [], {}):
+            sys.exit("test alert was not delivered: no channel configured or sending failed (see above)")
+        return
     if a.report:
         if not stock_report():
             sys.exit("report printed only: DISCORD_WEBHOOK is not set")
