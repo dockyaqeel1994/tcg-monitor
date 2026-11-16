@@ -1,0 +1,16 @@
+{
+ "available": {
+  "title": "available items",
+  "price": null,
+  "count": 0,
+  "available": false,
+  "url": "https://p-bandai.com/nz/series/onepiece-series?_f_brands=06-0074&_f_series=03-002"
+ },
+ "upcoming": {
+  "title": "upcoming items",
+  "price": null,
+  "count": 0,
+  "available": false,
+  "url": "https://p-bandai.com/nz/series/onepiece-series?_f_brands=06-0074&_f_series=03-002"
+ }
+}
