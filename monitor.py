@@ -542,7 +542,7 @@ def notify(by_site, failing, orders=None):
         lines.append(f"== {site['name']} ==")
         rows.append(f"<h3>{htmllib.escape(site['name'])}</h3><ul>")
         for tag, n in alerts:
-            price = f"{cur}{n['price']:g}" if n["price"] is not None else "?"
+            price = f"{n.get('cur') or cur}{n['price']:g}" if n["price"] is not None else "?"  # pbandai: US$, NZ$...
             cmp = f" | {n['cmp']}" if n.get("cmp") else ""
             lines.append(f"[{tag}] {n['title']} - {price}{cmp}\n  {n['url']}")
             rows.append(f"<li><b>{htmllib.escape(tag)}</b>: <a href='{n['url']}'>"
