@@ -164,7 +164,8 @@ def test_pbandai():
     assert a["price"] == 59.0 and a["cur"] == "NZ$" and a["preorder"] and a["available"]
     assert not items["https://p-bandai.com/nz/item/N3"]["available"]      # PRE-ORDER CLOSED
     tags = {n["title"][:40]: t for t, n in m.pbandai_alerts({}, items)}
-    assert tags == {"ONE PIECE CARD GAME Premium Card Collect": "PREORDER",   # Japanese set skipped
+    assert tags == {"ONE PIECE CARD GAME Premium Card Collect": "PREORDER",
+                    "ONE PIECE CARD GAME Japanese 4th Anniver": "PREORDER",   # any language on Premium Bandai
                     "S.H.Figuarts SON GOKU": "IN STOCK"}                      # (pbandai() drops non-One Piece)
     assert m.pbandai_alerts(items, items) == []                                # nothing changed
 

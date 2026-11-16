@@ -68,7 +68,7 @@ SITES = [
      "url": "https://rebelzcollectibles.co.za/products"},
 ]
 
-# Premium Bandai (official Bandai store): alerts when an English One Piece Card Game item shows
+# Premium Bandai (official Bandai store): alerts when a One Piece Card Game item (any language) shows
 # PRE-ORDER or IN STOCK in a region. Each region normally ships only within that region.
 for _code, _region, _flag in [("au", "Australia", "🇦🇺"), ("nz", "New Zealand", "🇳🇿"), ("us", "USA", "🇺🇸"),
                               ("hk", "Hong Kong", "🇭🇰"), ("tw", "Taiwan", "🇹🇼"), ("sg", "Singapore", "🇸🇬")]:

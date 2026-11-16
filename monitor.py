@@ -320,9 +320,9 @@ def pbandai(site, f):
 
 
 def pbandai_alerts(old, new):
-    """An English One Piece item that can now be pre-ordered or bought, and couldn't at the last check."""
+    """A One Piece item (any language) that can now be pre-ordered or bought, and couldn't at the last check."""
     return [("PREORDER" if n["preorder"] else "IN STOCK", n) for k, n in new.items()
-            if n["available"] and not NON_ENGLISH_RE.search(n["title"]) and not old.get(k, {}).get("available")]
+            if n["available"] and not old.get(k, {}).get("available")]
 
 
 ADAPTERS = {

@@ -19,8 +19,8 @@ is **new**, **back in stock**, or has a **price drop**.
   overwrites its saved state, so one bad run can't cause a flood of fake "new" alerts.
 - The first run of each store only saves a baseline (no alerts).
 
-- **Premium Bandai** (official store: AU, NZ, US, HK, TW, SG): checked daily; posts when an English
-  One Piece Card Game item shows PRE-ORDER or IN STOCK (name, price, link). Each region normally ships
+- **Premium Bandai** (official store: AU, NZ, US, HK, TW, SG): checked daily; posts when a One Piece
+  Card Game item (any language, incl. Japanese) shows PRE-ORDER or IN STOCK (name, price, link). Each region normally ships
   only within that region.
 
 ## Setup (GitHub Actions, free)
