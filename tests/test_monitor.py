@@ -147,6 +147,14 @@ def test_alert_wording():
     assert m.describe("BOOSTER BOX IN STOCK") == ("📦", "In stock")
 
 
+def test_pbandai():
+    text = "SALES STATUS Upcoming Items (0) Available Items (2) No Longer Available Items (28)"
+    assert m.pb_counts(text) == {"upcoming": 0, "available": 2}
+    old = {"available": {"count": 0}, "upcoming": {"count": 1}}
+    new = {"available": {"count": 2}, "upcoming": {"count": 1}}
+    assert [k for k, _ in m.pbandai_alerts(old, new)] == ["available"]
+
+
 def test_kai_draft():
     os.environ.update(ORDER_NAME="A Name", ORDER_ADDRESS="1 Street, Johannesburg", ORDER_PHONE="+27 00")
     n = {"title": "One Piece Card Game - [EB-05] - Booster Box", "price": 199.95, "available": True, "url": "u"}

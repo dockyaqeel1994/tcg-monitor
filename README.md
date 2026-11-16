@@ -19,6 +19,10 @@ is **new**, **back in stock**, or has a **price drop**.
   overwrites its saved state, so one bad run can't cause a flood of fake "new" alerts.
 - The first run of each store only saves a baseline (no alerts).
 
+- **Premium Bandai** (official store: AU, NZ, US, HK, TW, SG): checked daily; posts when a region's
+  count of One Piece Card Game items available to order (or upcoming) goes up. Each region normally
+  ships only within that region.
+
 ## Setup (GitHub Actions, free)
 1. Push this folder to a **private** repo.
 2. Settings -> Secrets and variables -> Actions -> add secrets: `SMTP_HOST` (smtp.gmail.com),

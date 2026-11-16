@@ -111,7 +111,7 @@ class Fetcher:
     def __init__(self):
         self.pw = self.browser = self.ctx = None
 
-    def html(self, url, js=False):
+    def html(self, url, js=False, wait=6000):
         if not js:
             r = get(url)
             if r is None:
@@ -129,7 +129,7 @@ class Fetcher:
             # "networkidle" never fires on pages with chat/analytics scripts; wait for the DOM, then
             # give client-side rendering a few seconds
             page.goto(url, wait_until="domcontentloaded", timeout=45000)
-            page.wait_for_timeout(6000)
+            page.wait_for_timeout(wait)
             html = page.content()
             if re.search(r"Just a moment|cf-challenge|challenge-platform|Attention Required", html[:20000]):
                 raise RuntimeError("blocked by a Cloudflare bot check")
@@ -280,7 +280,29 @@ def paged(site, f, parse):
     return out
 
 
+# Premium Bandai: the public listing page shows "Upcoming Items (N)" / "Available Items (N)" counts
+PB_COUNT_RE = re.compile(r"(?<!Longer )\b(Upcoming|Available) Items \((\d+)\)", re.I)  # not "No Longer Available"
+
+
+def pb_counts(text):
+    return {k.lower(): int(n) for k, n in PB_COUNT_RE.findall(text)}
+
+
+def pbandai(site, f):
+    counts = pb_counts(BeautifulSoup(f.html(site["url"], js=True, wait=12000), "lxml").get_text(" ", strip=True))
+    if not counts:
+        raise RuntimeError("item counts not found (page layout changed?)")
+    return {k: {"title": f"{k} items", "price": None, "count": counts.get(k, 0),
+                "available": counts.get(k, 0) > 0, "url": site["url"]} for k in ("available", "upcoming")}
+
+
+def pbandai_alerts(old, new):
+    """Alert when a region's count of available or upcoming items goes up."""
+    return [(k, n) for k, n in new.items() if n["count"] > old.get(k, {}).get("count", 0)]
+
+
 ADAPTERS = {
+    "pbandai": pbandai,
     "shopify": shopify,
     "woocommerce": lambda s, f: paged(s, f, parse_woo),
     "prestashop": lambda s, f: paged(s, f, parse_presta),
@@ -533,6 +555,12 @@ def send_discord(by_site, failing, orders):
     for site, alerts in by_site.values():
         cards = []
         for tag, n in alerts:
+            if site.get("platform") == "pbandai":
+                what = "now available to order" if tag == "available" else "coming soon (upcoming)"
+                cards.append(f"### {site.get('flag', '')} {site['name']}\n🆕 **{n['count']} One Piece Card Game "
+                             f"item{'s' if n['count'] != 1 else ''} {what}** · [Open store](<{n['url']}>)\n"
+                             "\u200b\n" + "─" * 20 + "\n")
+                continue
             icon, label = describe(tag)
             rows = n.get("rows") or [(shop(site["name"]), n["price"] or 0, n["available"], n["url"], True)]
             cards.append(card(icon, n["title"], rows, f"{label} at **{shop(site['name'])}**"))
@@ -675,7 +703,9 @@ def main():
                     orders.setdefault(code, [])
                     orders[code] += [n for n in items if n["url"] not in {x["url"] for x in orders[code]}]
             if path.exists():
-                alerts = diff(json.loads(path.read_text()), new, SINGLES_MIN / site.get("fx", 1))
+                old = json.loads(path.read_text())
+                alerts = (pbandai_alerts(old, new) if site.get("platform") == "pbandai"
+                          else diff(old, new, SINGLES_MIN / site.get("fx", 1)))
             elif site.get("sealed"):  # first run: report what is in stock right now
                 alerts = [("IN STOCK", n) for n in new.values()]
             else:

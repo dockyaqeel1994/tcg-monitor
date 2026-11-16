@@ -1,6 +1,7 @@
 """Store configuration.
 
 platform:
+  pbandai      Premium Bandai listing page: watches its "Available/Upcoming Items (N)" counts
   shopify      reads <collection>/products.json (no HTML parsing, fastest + most reliable)
   woocommerce  parses the product grid HTML, paginates with /page/N/
   prestashop   parses the product grid HTML, paginates with ?page=N
@@ -66,6 +67,14 @@ SITES = [
     {"name": "Rebelz Collectibles", "platform": "shopify", "filter": True,
      "url": "https://rebelzcollectibles.co.za/products"},
 ]
+
+# Premium Bandai (official Bandai store): alerts when One Piece Card Game items become available or
+# upcoming in a region. Each region normally ships only within that region.
+for _code, _region, _flag in [("au", "Australia", "🇦🇺"), ("nz", "New Zealand", "🇳🇿"), ("us", "USA", "🇺🇸"),
+                              ("hk", "Hong Kong", "🇭🇰"), ("tw", "Taiwan", "🇹🇼"), ("sg", "Singapore", "🇸🇬")]:
+    SITES.append({"name": f"Premium Bandai {_region}", "platform": "pbandai", "js": True, "sealed": False,
+                  "flag": _flag, "url": f"https://p-bandai.com/{_code}/series/onepiece-series"
+                                        "?_f_brands=06-0074&_f_series=03-002"})
 
 for _s in SITES:  # only sealed product for now (no singles); set "sealed": False on a store to undo
     _s.setdefault("sealed", True)
