@@ -1,7 +1,7 @@
 {
  "monkey-d-luffy-093-op17-op17-093": {
   "title": "Monkey.D.Luffy (093) [OP17 - OP17-093]",
-  "price": 33.99,
+  "price": 32.99,
   "available": true,
   "url": "https://cardcache.co.za/products/monkey-d-luffy-093-op17-op17-093"
  },
@@ -17,15 +17,9 @@
   "available": true,
   "url": "https://cardcache.co.za/products/yamato-op17-op17-074"
  },
- "loki-op17-op17-119": {
-  "title": "Loki [OP17 - OP17-119]",
-  "price": 261.99,
-  "available": true,
-  "url": "https://cardcache.co.za/products/loki-op17-op17-119"
- },
  "charlotte-pudding-op17-op17-109": {
   "title": "Charlotte Pudding [OP17 - OP17-109]",
-  "price": 58.99,
+  "price": 55.99,
   "available": true,
   "url": "https://cardcache.co.za/products/charlotte-pudding-op17-op17-109"
  },
@@ -193,19 +187,19 @@
  },
  "usopp-alternate-art-the-world-s-strongest-warriors-711427": {
   "title": "Usopp (Alternate Art) [OP17 - OP17-080]",
-  "price": 191.99,
+  "price": 192.99,
   "available": true,
   "url": "https://cardcache.co.za/products/usopp-alternate-art-the-world-s-strongest-warriors-711427"
  },
  "loki-alternate-art-the-world-s-strongest-warriors-710586": {
   "title": "Loki (Alternate Art) [OP17 - OP17-119]",
-  "price": 591.99,
+  "price": 699.99,
   "available": true,
   "url": "https://cardcache.co.za/products/loki-alternate-art-the-world-s-strongest-warriors-710586"
  },
  "monkey-d-luffy-079-alternate-art-the-world-s-strongest-warriors-707124": {
   "title": "Monkey.D.Luffy (079) (Alternate Art) [OP17 - OP17-079]",
-  "price": 605.99,
+  "price": 588.99,
   "available": true,
   "url": "https://cardcache.co.za/products/monkey-d-luffy-079-alternate-art-the-world-s-strongest-warriors-707124"
  },
@@ -643,9 +637,15 @@
  },
  "charlotte-linlin-049-alternate-art-op17-op17-049": {
   "title": "Charlotte Linlin (049) (Alternate Art) [OP17 - OP17-049]",
-  "price": 252.99,
+  "price": 258.99,
   "available": true,
   "url": "https://cardcache.co.za/products/charlotte-linlin-049-alternate-art-op17-op17-049"
+ },
+ "loki-op17-op17-119": {
+  "title": "Loki [OP17 - OP17-119]",
+  "price": 246.99,
+  "available": false,
+  "url": "https://cardcache.co.za/products/loki-op17-op17-119"
  },
  "edward-newgate-040-op17-op17-040": {
   "title": "Edward.Newgate (040) [OP17 - OP17-040]",
@@ -655,7 +655,7 @@
  },
  "gloriosa-op17-op17-046": {
   "title": "Gloriosa [OP17 - OP17-046]",
-  "price": 41.99,
+  "price": 37.99,
   "available": true,
   "url": "https://cardcache.co.za/products/gloriosa-op17-op17-046"
  },
