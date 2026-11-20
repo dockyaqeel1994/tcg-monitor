@@ -1,8 +1,56 @@
 {
- "https://www.miragegaming.co.za/products/one-piece-tcg-extra-booster-box-eb-06": {
-  "title": "One Piece TCG: Extra Booster Box (EB-06)",
-  "price": 6000.0,
+ "https://www.miragegaming.co.za/products/yamato-deck-brick-st-28": {
+  "title": "Yamato Deck Brick (ST-28)",
+  "price": 250.0,
   "available": true,
-  "url": "https://www.miragegaming.co.za/products/one-piece-tcg-extra-booster-box-eb-06"
+  "url": "https://www.miragegaming.co.za/products/yamato-deck-brick-st-28"
+ },
+ "https://www.miragegaming.co.za/products/ace-newgate-deck-brick-st-22": {
+  "title": "Ace & Newgate Deck Brick (ST-22)",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/ace-newgate-deck-brick-st-22"
+ },
+ "https://www.miragegaming.co.za/products/marshall-d-teach-deck-brick-st-27": {
+  "title": "Marshall.D.Teach Deck Brick (ST-27)",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/marshall-d-teach-deck-brick-st-27"
+ },
+ "https://www.miragegaming.co.za/products/monkey-d-luffy-deck-brick-st-31": {
+  "title": "Monkey.D.Luffy Deck Brick (ST-31)",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/monkey-d-luffy-deck-brick-st-31"
+ },
+ "https://www.miragegaming.co.za/products/sabo-deck-brick-st-35": {
+  "title": "Sabo Deck Brick (ST-35)",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/sabo-deck-brick-st-35"
+ },
+ "https://www.miragegaming.co.za/products/kuzan-deck-brick-st-33": {
+  "title": "Kuzan Deck brick (ST-33)",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/kuzan-deck-brick-st-33"
+ },
+ "https://www.miragegaming.co.za/products/charlotte-katakuri-deck-brick-st-34": {
+  "title": "Charlotte Katakuri Deck Brick (ST-34)",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/charlotte-katakuri-deck-brick-st-34"
+ },
+ "https://www.miragegaming.co.za/products/roromoa-zoro-deck-brick-st-32": {
+  "title": "Roromoa Zoro Deck Brick ST-32",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/roromoa-zoro-deck-brick-st-32"
+ },
+ "https://www.miragegaming.co.za/products/charlotte-katakuri-deck-brick": {
+  "title": "Charlotte Katakuri Deck Brick ST-20",
+  "price": 250.0,
+  "available": true,
+  "url": "https://www.miragegaming.co.za/products/charlotte-katakuri-deck-brick"
  }
 }

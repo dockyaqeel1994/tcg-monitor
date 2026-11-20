@@ -1,4 +1,13 @@
 {
+ "https://p-bandai.com/us/item/N2897694002": {
+  "title": "ONE PIECE CARD GAME ONE PIECE Heroines Precious Set",
+  "price": 70.0,
+  "cur": "US$",
+  "status": "OUT OF STOCK",
+  "available": false,
+  "preorder": false,
+  "url": "https://p-bandai.com/us/item/N2897694002"
+ },
  "https://p-bandai.com/us/item/N9065181002": {
   "title": "ONE PIECE CARD GAME -THE WORLD\u2019S STRONGEST WARRIORS- [OP-17] Booster Box",
   "price": 120.0,
@@ -169,14 +178,5 @@
   "available": false,
   "preorder": false,
   "url": "https://p-bandai.com/us/item/N9062600002"
- },
- "https://p-bandai.com/us/item/N2883032002": {
-  "title": "ONE PIECE CARD GAME Premium Card Collection -Live Action Edition vol.2 Baroque Works-[November 2026 Delivery]",
-  "price": 20.0,
-  "cur": "US$",
-  "status": "PRE-ORDER CLOSED",
-  "available": false,
-  "preorder": false,
-  "url": "https://p-bandai.com/us/item/N2883032002"
  }
 }
