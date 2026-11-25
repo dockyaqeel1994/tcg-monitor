@@ -1,10 +1,4 @@
 {
- "two-legends-booster-box-two-legends-op08": {
-  "title": "Two Legends Booster Box - Two Legends (OP08)",
-  "price": 4299.0,
-  "available": true,
-  "url": "https://blistcollectibles.co.za/products/two-legends-booster-box-two-legends-op08"
- },
  "royal-blood-booster-box-royal-blood-op10": {
   "title": "Royal Blood Booster Box - Royal Blood (OP10)",
   "price": 4299.0,
@@ -260,7 +254,7 @@
  "extra-booster-one-piece-heroines-edition-vol-2-eb05-055": {
   "title": "Nami (055) EB05-055",
   "price": 72.0,
-  "available": true,
+  "available": false,
   "url": "https://blistcollectibles.co.za/products/extra-booster-one-piece-heroines-edition-vol-2-eb05-055"
  },
  "ultra-deck-the-three-brothers-st13-003": {
@@ -274,12 +268,6 @@
   "price": 67.0,
   "available": true,
   "url": "https://blistcollectibles.co.za/products/don-yamato-premium-booster-the-best"
- },
- "don-luffy-gold-adventure-on-kamis-island-foil": {
-  "title": "DON!! Card (Luffy) (Gold) (Adventure on Kami's Island) Foil",
-  "price": 65.0,
-  "available": true,
-  "url": "https://blistcollectibles.co.za/products/don-luffy-gold-adventure-on-kamis-island-foil"
  },
  "extra-booster-one-piece-heroines-edition-vol-2-eb05-001": {
   "title": "Jewelry Bonney EB05-001",
